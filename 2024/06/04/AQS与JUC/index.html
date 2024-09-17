@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>AQS与JUC - dawnsBlog</title><link rel="manifest" href="../../../../manifest.json"><meta name="application-name" content="dawnsBlog"><meta name="msapplication-TileImage" content="/img/logo.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="dawnsBlog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="在读这篇文章之前最好读读我前面的这篇文章：Java并发编程。  在这篇文章中我打算详细讲讲JUC包的几种锁，后面再补上AQS的源码分析。"><meta property="og:type" content="blog"><meta property="og:title" content="AQS与JUC"><meta property="og:url" content="https://cdn-sone.github.io/2024/06/04/AQS%E4%B8%8EJUC/"><meta property="og:site_name" content="dawnsBlog"><meta property="og:description" content="在读这篇文章之前最好读读我前面的这篇文章：Java并发编程。  在这篇文章中我打算详细讲讲JUC包的几种锁，后面再补上AQS的源码分析。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn-sone.github.io/images/AQS%E4%B8%8EJUC/JUC%E5%8C%85%E6%A6%82%E8%BF%B0.png"><meta property="article:published_time" content="2024-06-04T01:43:19.000Z"><meta property="article:modified_time" content="2024-06-29T14:26:09.406Z"><meta property="article:author" content="CDN"><meta property="article:tag" content="并发编程"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://cdn-sone.github.io/images/AQS%E4%B8%8EJUC/JUC%E5%8C%85%E6%A6%82%E8%BF%B0.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://cdn-sone.github.io/2024/06/04/AQS%E4%B8%8EJUC/"},"headline":"AQS与JUC","image":["https://cdn-sone.github.io/images/AQS%E4%B8%8EJUC/JUC%E5%8C%85%E6%A6%82%E8%BF%B0.png"],"datePublished":"2024-06-04T01:43:19.000Z","dateModified":"2024-06-29T14:26:09.406Z","author":{"@type":"Person","name":"CDN"},"publisher":{"@type":"Organization","name":"dawnsBlog","logo":{"@type":"ImageObject","url":"https://cdn-sone.github.io/img/logo.png"}},"description":"在读这篇文章之前最好读读我前面的这篇文章：Java并发编程。  在这篇文章中我打算详细讲讲JUC包的几种锁，后面再补上AQS的源码分析。"}</script><link rel="canonical" href="https://cdn-sone.github.io/2024/06/04/AQS%E4%B8%8EJUC/"><link rel="icon" href="../../../../img/logo.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="../../../../css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="../../../../index.html"><img src="../../../../img/logo.png" alt="dawnsBlog" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="../../../../index.html">Home</a><a class="navbar-item" href="../../../../archives">Archives</a><a class="navbar-item" href="../../../../categories">Categories</a><a class="navbar-item" href="../../../../tags">Tags</a><a class="navbar-item" href="../../../../about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2024-06-04T01:43:19.000Z" title="2024/6/4 09:43:19">2024-06-04</time>发表</span><span class="level-item"><time dateTime="2024-06-29T14:26:09.406Z" title="2024/6/29 22:26:09">2024-06-29</time>更新</span><span class="level-item"><a class="link-muted" href="../../../../categories/java/">java</a></span><span class="level-item">14 分钟读完 (大约2147个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">AQS与JUC</h1><div class="content"><blockquote>
+<p>在读这篇文章之前最好读读我前面的这篇文章：<a target="_blank" rel="noopener" href="https://avvqlmdmm2r.feishu.cn/wiki/VqeYw70tpiSQCOkvPXIcdX2PngU?from=from_copylink">Java并发编程</a>。</p>
+</blockquote>
+<p>在这篇文章中我打算详细讲讲JUC包的几种锁，后面再补上AQS的源码分析。</p>
+<span id="more"></span>
+<p>首先我们明确一个区别，synchronized是由java JVM实现的，而Lock是由java JDK实现的。以下列了几个不同点</p>
+<ol>
+<li>Synchronized是Java的内置关键字，Lock是一个java接口。</li>
+<li>Synchronized无法判断<strong>获取锁的状态</strong>，Lock可以通过java.lang.Thread 中的holdsLock()方法判断是否获得某个对象的锁。</li>
+<li>Synchronized会<strong>自动释放锁</strong>，Lock必须手动释放锁，否则可能产生死锁（手动使用lock和unlock方法）。</li>
+<li>如果一个线程获得了锁，对于Synchronized来说其他需要使用这个资源的线程就只能等待下去，如果获得了锁的线程进入阻塞状态，其他线程依旧会等待，Lock锁就不一定会一直等待下去，可以通过tryLock尝试获取锁（线程是否等待）。</li>
+<li>Synchronized是可重入锁，不可以中断，非公平的，Lock可重入锁，可以判断锁的状态，是否公平可以通过fair参数进行设置，相对而言比较灵活。</li>
+</ol>
+<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
+<p>首先我们从JUC包开始</p>
+<p><img src="/images/AQS%E4%B8%8EJUC/JUC%E5%8C%85%E6%A6%82%E8%BF%B0.png" alt="" /></p>
+<p>我们首先了解JUC包下的几种锁</p>
+<h3 id="reentrantlock重入锁"><a class="markdownIt-Anchor" href="#reentrantlock重入锁"></a> ReentrantLock重入锁</h3>
+<p>重入锁可以完全替代 synchronized 关键字。在java早期版本中，重入锁的性能远大于synchronized。但从JDK6.0开始，JDK在synchronized上做了大量的优化，使得两者的性能差距并不大。重入锁对逻辑控制的灵活性要远远好于synchronized。</p>
+<p>使用方法比较简单：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">ReentrantLock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>();</span><br><span class="line">lock.lock();</span><br><span class="line">lock.unlock();</span><br></pre></td></tr></table></figure>
+<p>这里注意，每个unlock()必须对应一个lock(),必须形成闭包。若unlock()数大于lock()数，则会抛出异常。</p>
+<h2 id="中断响应lockinterruptibly"><a class="markdownIt-Anchor" href="#中断响应lockinterruptibly"></a> 中断响应lockInterruptibly()</h2>
+<p>如果使用 synchronized ，要么获得锁，要么保持等待。而如果使用了重入锁，则提供了另一种可能，那就是线程可以被中断。也就是在等待锁的过程中，程序可以根据需要取消对锁的请求。即：<strong>如果一个线程正在等待锁，那么它依然可以收到一个通知，被告知无须再等待，可以停止工作了</strong>。</p>
+<p>而使用synchronized的锁要想停止线程，必须先获得锁，才能继续继续执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">ReentrantLockThread</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> ReentrantLock lock;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ReentrantLockThread</span><span class="params">(ReentrantLock lock)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.lock = lock</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            lock.lockInterruptibly(); <span class="comment">// 获得lock1的可中断锁</span></span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">&quot;，加锁成功！&quot;</span>);</span><br><span class="line">    </span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">&quot;，发生异常！&quot;</span>);</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="string">&quot;，lock解锁成功！&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用<code>lockInterruptibly()</code>,既是获取中断锁，若在此过程中发生异常，进程可以直接退出，这样的设计可以防止发生死锁。</p>
+<h3 id="trylocklong-time-timeunit-unit"><a class="markdownIt-Anchor" href="#trylocklong-time-timeunit-unit"></a> tryLock(long time, TimeUnit unit)</h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lock.tryLock(<span class="number">500</span>, TimeUnit.MILLISECONDS)</span><br></pre></td></tr></table></figure>
+<p>该方法为在一定时间内试图获取锁，失败则返回。</p>
+<p>tryLock()方法也可以不带参数直接运行。在这种情况下，当前线程会尝试获得锁，如果锁并未被其他线程占用，则申请锁会成功，并立即返回true。如果锁被其他线程占用，则当前线程不会进行等待，而是立即返回false。</p>
+<h3 id="公平锁和非公平锁"><a class="markdownIt-Anchor" href="#公平锁和非公平锁"></a> 公平锁和非公平锁</h3>
+<p>在默认的情况下，锁的申请是非公平锁。我们知道sychronized在进入waitqueue时都会先经过几轮空循环,这个线程是有权利进行锁的争抢，所以sychronized锁是非公平的。</p>
+<p>在默认情况下，<code>ReentrantLock</code>同样是非公平的，默认输入参数为<code>false</code>,当输入参数为<code>true</code>时，锁会转换成公平锁。公平锁默认会维护一个队列，这个我们以后再讲。</p>
+<h2 id="condition重入锁"><a class="markdownIt-Anchor" href="#condition重入锁"></a> Condition重入锁</h2>
+<p>在使⽤内置锁<code>synchronized</code>时，通过调⽤Objec中定义的监视器⽅法，主要有<code>wait()</code>,<code>wait(long timeout)</code>,<code>notify()</code>和<code>notifyAll()</code>⽅法，可以实现等待/通知模式。Codition接⼝中也定义了类似的监视器⽅法，与显示锁Lock配合使⽤也可以实现等待/ 通知模式。</p>
+<p>常用方法方式如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Condition.await() <span class="comment">//等待线程</span></span><br><span class="line">Condition.signal() <span class="comment">//唤醒一个线程</span></span><br><span class="line">Condition.signalAll() <span class="comment">//唤醒所有线程</span></span><br></pre></td></tr></table></figure>
+<h2 id="semaphore-信号量"><a class="markdownIt-Anchor" href="#semaphore-信号量"></a> Semaphore 信号量</h2>
+<p><code>synchronized</code>和<code>ReentrantLock</code>机制都只允许获取锁（锁资源只有一个）的线程去访问资源，换而言之，只允许一个线程去访问资源。而<code>Semaphore</code>扩展了这种机制，可以指定多个线程同时访问某一个资源。</p>
+<p>常用方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">acquire</span><span class="params">()</span>; </span><br><span class="line"><span class="comment">//尝试获得⼀个准⼊的许可。若⽆法获得，则线程会等待，直到有线程释放⼀个 许可或者当前线程被中断。 </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">acquireUninterruptibly</span><span class="params">()</span>; </span><br><span class="line"><span class="comment">//具有acquire⼀样的功能，但是不响应中断 （Uninterruptibly）。 </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">tryAcquire</span><span class="params">()</span>; </span><br><span class="line"><span class="comment">//尝试获得⼀个许可，如果成功就⽴即返回true，失败则⽴即返回false。 </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">tryAcquire</span><span class="params">(<span class="type">long</span> timeout, TimeUnit unit)</span>; </span><br><span class="line"><span class="comment">//在指定时间内，尝试获得⼀个许可，如果成功 就返回true，失败则返回false。 void release(); 资源访问结束后，释放⼀个许可。</span></span><br></pre></td></tr></table></figure>
+<h2 id="countdownlatch倒计时器"><a class="markdownIt-Anchor" href="#countdownlatch倒计时器"></a> CountDownLatch倒计时器</h2>
+<p><code>CountDownLatch</code>是⼀个多线程控制⼯具。⽤来控制线程的等待。设置需要countDown的数量<code>num</code>，然后每⼀个线程执⾏完毕后，调⽤<code>countDown()</code>⽅法，⽽主线程调⽤<code>await()</code>⽅ 法执⾏等待，直到num个⼦线程执⾏了<code>countDown()</code>⽅法 ，则主线程开始继续执⾏。</p>
+<p>这个有点类似线程控制包里的<code>join()</code>方法。</p>
+<h2 id="readwriteloc读写锁"><a class="markdownIt-Anchor" href="#readwriteloc读写锁"></a> ReadWriteLoc读写锁</h2>
+<p>ReadWriteLock由JDK5提供，它允许多个线程同时读。但是考虑到数据的完整性，写写操作和读写操作间依然是需要相互等待和持有锁的。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center">读</th>
+<th style="text-align:center">写</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">读</td>
+<td style="text-align:center">非阻塞</td>
+<td style="text-align:center">阻塞</td>
+</tr>
+<tr>
+<td style="text-align:center">读</td>
+<td style="text-align:center">阻塞</td>
+<td style="text-align:center">阻塞</td>
+</tr>
+</tbody>
+</table>
+<p>如果在系统中，读操作的次数远远⼤于写操作，那么读写锁就可以发挥最⼤的效果， 提升系统的性能</p>
+<h2 id="cyclicbarrier循环栅栏"><a class="markdownIt-Anchor" href="#cyclicbarrier循环栅栏"></a> CyclicBarrier循环栅栏</h2>
+<p><code>CyclicBarrier</code>与<code>CountDownLatch</code>⾮常类似，它⽀持计数器的<em>反复使⽤</em>，<code>CyclicBarrier</code>可以理解为循环栅栏。<code>CyclicBarrier</code>可以接收⼀个参数作为<code>Runnable barrierAction</code>，每当计数器⼀次计数完成后——<code>CyclicBarrier.await()</code>时，系统会执⾏的动作。</p>
+<h2 id="locksupport线程阻塞工具类"><a class="markdownIt-Anchor" href="#locksupport线程阻塞工具类"></a> LockSupport线程阻塞⼯具类</h2>
+<p>在之前的笔记中我们知道<code>Thread.suspent</code>,<code>Thread.resume</code>已经被废弃了，原因是如果使用不当，当先执行resume,后执行suspend将导致线程被永久阻塞。LockSupport类改善了这一情况，同时相比于使用监视器wait()或者Condition.await(),LockSupport不需要事先获取锁。</p>
+<p>LockSupport包含两个方法，<code>part</code>,<code>unpart</code>。我们看看LockSupport是如何实现防止先调用unpart,后调用part导致线程被永远阻塞。</p>
+<p>每⼀个线程都有⼀个许可，该许可默认为 <code>不可⽤</code>。如 果该许可是<code>可⽤</code>状态，那么park()⽅法会⽴即返回，消费这个许可，将该许可变更为<code>不可⽤</code>状态，流程代码可以继续执⾏。如果该许可是<code>不可⽤</code>状态，那么park()⽅法 将会阻塞；unpark⽅法，将指定线程的⼀个许可变为<code>可⽤</code>状态。</p>
+<p>状态变化如表所示：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center">当前许可状态</th>
+<th style="text-align:center">调用后许可状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">park</td>
+<td style="text-align:center">可用</td>
+<td style="text-align:center">不可用</td>
+</tr>
+<tr>
+<td style="text-align:center">park</td>
+<td style="text-align:center">不可用</td>
+<td style="text-align:center">阻塞</td>
+</tr>
+<tr>
+<td style="text-align:center">unpark</td>
+<td style="text-align:center">可用</td>
+<td style="text-align:center">可用</td>
+</tr>
+<tr>
+<td style="text-align:center">unpark</td>
+<td style="text-align:center">不可用</td>
+<td style="text-align:center">可用</td>
+</tr>
+</tbody>
+</table>
+<p>简而言之，经过unpart操作除<code>阻塞</code>状态变成<code>非阻塞</code>状态,其他所有状态都会变成可用状态，而当状态为不可用时是正常状态，若为可用，说明前面经过一次unpark,则调用park会将状态变回不可用状态。</p>
+<p>同时注意park阻塞线程支持被中断，且中断后不会抛出InterruptedException异常。</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>AQS与JUC</p><p><a href="https://cdn-sone.github.io/2024/06/04/AQS与JUC/">https://cdn-sone.github.io/2024/06/04/AQS与JUC/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>CDN</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-06-04</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-06-29</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="../../../../tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">并发编程</a></div><div class="a2a_kit a2a_kit_size_32 a2a_default_style"><a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a><a class="a2a_button_facebook"></a><a class="a2a_button_twitter"></a><a class="a2a_button_telegram"></a><a class="a2a_button_whatsapp"></a><a class="a2a_button_reddit"></a></div><script src="https://static.addtoany.com/menu/page.js" defer></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="../../../../img/alipay.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="../../../../img/wechat.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="../../05/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">常见漏洞原理</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="../../../05/29/ThreadLocal%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"><span class="level-item">ThreadLocal源码解析</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">评论</h3><div class="content" id="valine-thread"></div><script src="//cdn.jsdelivr.net/npm/leancloud-storage@3/dist/av-min.js"></script><script src="https://cdn.jsdelivr.net/npm/valine@1.4.16/dist/Valine.min.js"></script><script>new Valine({
+            el: '#valine-thread',
+            appId: "dhLX9c4sZ5PYVbbSjxpX6XXh-MdYXbMMI",
+            appKey: "iV8cPlsr25mxoVBH3dYgsAmV",
+            
+            avatar: "mm",
+            avatarForce: false,
+            meta: ["nick","mail","link"],
+            pageSize: 10,
+            lang: "zh-CN",
+            visitor: false,
+            highlight: true,
+            recordIP: false,
+            
+            
+            
+            enableQQ: false,
+            requiredFields: [],
+        });</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#概述"><span class="level-left"><span class="level-item">1</span><span class="level-item"> 概述</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#reentrantlock重入锁"><span class="level-left"><span class="level-item">1.1</span><span class="level-item"> ReentrantLock重入锁</span></span></a></li></ul></li><li><a class="level is-mobile" href="#中断响应lockinterruptibly"><span class="level-left"><span class="level-item">2</span><span class="level-item"> 中断响应lockInterruptibly()</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#trylocklong-time-timeunit-unit"><span class="level-left"><span class="level-item">2.1</span><span class="level-item"> tryLock(long time, TimeUnit unit)</span></span></a></li><li><a class="level is-mobile" href="#公平锁和非公平锁"><span class="level-left"><span class="level-item">2.2</span><span class="level-item"> 公平锁和非公平锁</span></span></a></li></ul></li><li><a class="level is-mobile" href="#condition重入锁"><span class="level-left"><span class="level-item">3</span><span class="level-item"> Condition重入锁</span></span></a></li><li><a class="level is-mobile" href="#semaphore-信号量"><span class="level-left"><span class="level-item">4</span><span class="level-item"> Semaphore 信号量</span></span></a></li><li><a class="level is-mobile" href="#countdownlatch倒计时器"><span class="level-left"><span class="level-item">5</span><span class="level-item"> CountDownLatch倒计时器</span></span></a></li><li><a class="level is-mobile" href="#readwriteloc读写锁"><span class="level-left"><span class="level-item">6</span><span class="level-item"> ReadWriteLoc读写锁</span></span></a></li><li><a class="level is-mobile" href="#cyclicbarrier循环栅栏"><span class="level-left"><span class="level-item">7</span><span class="level-item"> CyclicBarrier循环栅栏</span></span></a></li><li><a class="level is-mobile" href="#locksupport线程阻塞工具类"><span class="level-left"><span class="level-item">8</span><span class="level-item"> LockSupport线程阻塞⼯具类</span></span></a></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="../../../../js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="../../../../img/avatar.png" alt="CDN"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">CDN</p><p class="is-size-6 is-block">研究生</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="../../../../archives"><p class="title">8</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="../../../../categories"><p class="title">4</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="../../../../tags"><p class="title">7</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/CDN-Sone" target="_blank" rel="me noopener">关注我</a></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../categories/java/"><span class="level-start"><span class="level-item">java</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%9F%BA%E4%BA%8E%E6%A0%BC%E7%9A%84%E5%B1%9E%E6%80%A7%E5%9F%BA%E5%8A%A0%E5%AF%86/"><span class="level-start"><span class="level-item">基于格的属性基加密</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%B7%A5%E4%BD%9C/"><span class="level-start"><span class="level-item">工作</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/"><span class="level-start"><span class="level-item">网络安全</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-29T13:52:10.000Z">2024-06-29</time></p><p class="title"><a href="../../29/git%EF%BC%9A%E4%BD%A0%E7%9A%84%E4%BA%B2%E7%88%B8%E7%88%B8/">git：你的亲爸爸</a></p><p class="categories"><a href="../../../../categories/%E5%B7%A5%E4%BD%9C/">工作</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-16T04:01:15.000Z">2024-06-16</time></p><p class="title"><a href="../../16/AQS%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E4%BA%8C/">AQS源码解析(二)</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-15T15:08:24.000Z">2024-06-15</time></p><p class="title"><a href="../../15/hexo-Icarus%E9%A1%B5%E9%9D%A2%E4%BC%98%E5%8C%96/">hexo-Icarus页面优化</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-05T04:37:37.000Z">2024-06-05</time></p><p class="title"><a href="../../05/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/">常见漏洞原理</a></p><p class="categories"><a href="../../../../categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-04T01:43:19.000Z">2024-06-04</time></p><p class="title"><a href="">AQS与JUC</a></p><p class="categories"><a href="../../../../categories/java/">java</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="../../../../archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="../../../../tags/ABE/"><span class="tag">ABE</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/Lattice/"><span class="tag">Lattice</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/hexo/"><span class="tag">hexo</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%AE%89%E5%85%A8/"><span class="tag">安全</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B7%A5%E5%85%B7/"><span class="tag">工具</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"><span class="tag">并发编程</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"><span class="tag">源码解析</span><span class="tag">1</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="../../../../index.html"><img src="../../../../img/logo.png" alt="dawnsBlog" height="28"></a><p class="is-size-7"><span>&copy; 2024 CDN</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2019</p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="../../../../js/column.js"></script><script src="../../../../js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="../../../../js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "此网站使用Cookie来改善您的体验。",
+          dismiss: "知道了！",
+          allow: "允许使用Cookie",
+          deny: "拒绝",
+          link: "了解更多",
+          policy: "Cookie政策",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/mhchem.min.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="../../../../js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="../../../../js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="../../../../js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"../../../../content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

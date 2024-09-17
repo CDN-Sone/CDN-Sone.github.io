@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>常见漏洞原理 - dawnsBlog</title><link rel="manifest" href="../../../../manifest.json"><meta name="application-name" content="dawnsBlog"><meta name="msapplication-TileImage" content="/img/logo.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="dawnsBlog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="在这篇文章中我会收录一些常见的漏洞及其原理，同时分析抵御该漏洞的相关方法，即能够加强在做研发过程中的安全意识，也能为结合后面学习spring security打下基础。"><meta property="og:type" content="blog"><meta property="og:title" content="常见漏洞原理"><meta property="og:url" content="https://cdn-sone.github.io/2024/06/05/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/"><meta property="og:site_name" content="dawnsBlog"><meta property="og:description" content="在这篇文章中我会收录一些常见的漏洞及其原理，同时分析抵御该漏洞的相关方法，即能够加强在做研发过程中的安全意识，也能为结合后面学习spring security打下基础。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn-sone.github.io/images/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/ssrf%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B.png"><meta property="article:published_time" content="2024-06-05T04:37:37.000Z"><meta property="article:modified_time" content="2024-06-05T16:13:36.789Z"><meta property="article:author" content="CDN"><meta property="article:tag" content="安全"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://cdn-sone.github.io/images/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/ssrf%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://cdn-sone.github.io/2024/06/05/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/"},"headline":"常见漏洞原理","image":["https://cdn-sone.github.io/images/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/ssrf%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B.png"],"datePublished":"2024-06-05T04:37:37.000Z","dateModified":"2024-06-05T16:13:36.789Z","author":{"@type":"Person","name":"CDN"},"publisher":{"@type":"Organization","name":"dawnsBlog","logo":{"@type":"ImageObject","url":"https://cdn-sone.github.io/img/logo.png"}},"description":"在这篇文章中我会收录一些常见的漏洞及其原理，同时分析抵御该漏洞的相关方法，即能够加强在做研发过程中的安全意识，也能为结合后面学习spring security打下基础。"}</script><link rel="canonical" href="https://cdn-sone.github.io/2024/06/05/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/"><link rel="icon" href="../../../../img/logo.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="../../../../css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="../../../../index.html"><img src="../../../../img/logo.png" alt="dawnsBlog" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="../../../../index.html">Home</a><a class="navbar-item" href="../../../../archives">Archives</a><a class="navbar-item" href="../../../../categories">Categories</a><a class="navbar-item" href="../../../../tags">Tags</a><a class="navbar-item" href="../../../../about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2024-06-05T04:37:37.000Z" title="2024/6/5 12:37:37">2024-06-05</time>发表</span><span class="level-item"><time dateTime="2024-06-05T16:13:36.789Z" title="2024/6/6 00:13:36">2024-06-06</time>更新</span><span class="level-item"><a class="link-muted" href="../../../../categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a></span><span class="level-item">26 分钟读完 (大约3866个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">常见漏洞原理</h1><div class="content"><p>在这篇文章中我会收录一些常见的漏洞及其原理，同时分析抵御该漏洞的相关方法，即能够加强在做研发过程中的安全意识，也能为结合后面学习spring security打下基础。</p>
+<span id="more"></span>
+<h2 id="sql注入"><a class="markdownIt-Anchor" href="#sql注入"></a> SQL注入</h2>
+<h3 id="简介"><a class="markdownIt-Anchor" href="#简介"></a> 简介</h3>
+<p>在输⼊的字符串中注⼊SQL指令，这些注⼊的恶意指令会被数据库服务器误认为是正常的SQL指令⽽允许，系统因此遭到破坏或是⼊侵。</p>
+<p>SQL注入主要分为以下几类：</p>
+<p>• 基于布尔类型的盲注，即可以根据返回⻚⾯判断条件真假的注⼊。<br />
+• 基于时间的盲注，即不能根据⻚⾯返回的内容判断任何信息，要⽤条<br />
+件语句查看时间延迟语句是否⼰执⾏（即⻚⾯返回时间是否增加）来判<br />
+断。<br />
+• 基于报错注⼊，即⻚⾯会返回错误信息，或者把注⼊的语句的结果直<br />
+接返回到⻚⾯中。<br />
+• 联合查询注⼊，在可以使⽤Union 的情况下的注⼊。<br />
+• 堆查询注⼊，可以同时执⾏多条语句时的注⼊。</p>
+<h3 id="基于布尔类型的盲注"><a class="markdownIt-Anchor" href="#基于布尔类型的盲注"></a> 基于布尔类型的盲注</h3>
+<p>适⽤场景：后端执行sql执⾏的结果不会直接显示在前端，但是会在前端显示正确或者错误。</p>
+<p>布尔注入的的原理：</p>
+<ol>
+<li>获取数据库名字的⻓度： <code>select length(DATABASE())</code>。</li>
+<li>截取字符, 使用</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> MID(<span class="string">&#x27;string&#x27;</span>,<span class="number">2</span>,<span class="number">2</span>);</span><br><span class="line"><span class="keyword">select</span> substr(<span class="string">&#x27;string&#x27;</span>,<span class="number">2</span>);</span><br><span class="line"><span class="keyword">select</span> <span class="keyword">left</span>(<span class="string">&#x27;string&#x27;</span>,<span class="number">2</span>);</span><br></pre></td></tr></table></figure>
+<p>其中substr 和 MID作⽤⼀样，left是从字符串左边截取字符.<br />
+3. 为了⽅便遍历，⽤到for循环，适⽤ASCII：ASCII 和 ARD作⽤⼀样</p>
+<p>通过以上方法进行枚举，<strong>先猜⻓度，再猜每⼀位上的字符</strong>，获取<code>库名</code>，<code>表名</code>，<code>列名</code>，<code>数据（字段值）</code>。<br />
+也可以使⽤⼆分法去暴⼒枚举，这样更快，例如：⻓度&gt;=8是否成⽴</p>
+<h3 id="基于时间的盲注"><a class="markdownIt-Anchor" href="#基于时间的盲注"></a> 基于时间的盲注</h3>
+<p>适⽤场景：既没有数据回显，也不会在sql语句正确与否时显示不同的内容。(即前端不会显示任何信息)</p>
+<p>基于时间的盲注原理：利用判断条件和sql中的sleep方式判断条件是否正确。（可以理解为在数据库端端一种布尔注入，原本前端没有任何显示信息，可以通过反应时间了解正确或错误）</p>
+<p>如利用：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> sleep(if(<span class="keyword">select</span> length(database())<span class="operator">=</span><span class="number">8</span>),<span class="number">1</span>,<span class="number">0</span>);</span><br><span class="line"><span class="keyword">select</span> if(length(database())<span class="operator">=</span><span class="number">8</span>,sleep(<span class="number">1</span>),<span class="number">0</span>);</span><br><span class="line"><span class="comment">-- 两者等价</span></span><br></pre></td></tr></table></figure>
+<h3 id="基于报错的注入"><a class="markdownIt-Anchor" href="#基于报错的注入"></a> 基于报错的注⼊</h3>
+<p>这个比较好理解，前端会把后台报错的信息打印出来.</p>
+<p><code>extractValue()</code>是一个 XML 处理函数，它从给定的 XML 片段中提取值。通过构造一个不正确的 XML 片段，可以触发一个错误消息，其中包含我们插入的恶意数据。<br />
+<code>updatexml()</code> 是一个 XML 更新函数，用于更新给定 XML 片段中的节点。通过构造一个不正确的 XML 更新语句，同样可以触发一个错误消息。</p>
+<p>实例如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> extractValue(<span class="string">&#x27;&#x27;</span>,concat(<span class="string">&#x27;-&#x27;</span>,database()));</span><br><span class="line"><span class="keyword">select</span> updatexml(<span class="string">&#x27;&#x27;</span>,concat(<span class="string">&#x27;-&#x27;</span>,database()),<span class="string">&#x27;&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>会分别产生如下报错信息</p>
+<p>对于 <code>extractValue()</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SQL Error (1105): XPATH syntax error: <span class="string">&#x27;-&#x27;</span>database_name</span><br></pre></td></tr></table></figure>
+<p>对于 <code>updatexml()</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SQL Error (1105): XPATH syntax error: <span class="string">&#x27;-&#x27;</span>database_name</span><br></pre></td></tr></table></figure>
+<h3 id="sql注入的基本流程"><a class="markdownIt-Anchor" href="#sql注入的基本流程"></a> SQL注入的基本流程</h3>
+<ol>
+<li>判断是否有sql注⼊漏洞,方法如下：
+<ul>
+<li>加⼀个单引号’，看是否出错，因为引号必须成对出现，否则会出错（判断是否能注入）。</li>
+<li>两次尝试 1=1 正常输出，1=2错误输出，证明SQL语句⽣效，存在SQL注⼊漏洞（判断是否能布尔注入）。</li>
+</ul>
+</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> first_name,last_name <span class="keyword">from</span> <span class="keyword">user</span> <span class="keyword">where</span> user_id<span class="operator">=</span><span class="string">&#x27;1&#x27;</span><span class="keyword">and</span> <span class="number">1</span><span class="operator">=</span>#<span class="string">&#x27;;</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>获得数据库名,可利用union等类似的联合查询</li>
+<li>获得表名</li>
+<li>获取列名</li>
+<li>获得数据</li>
+</ol>
+<p>获取对应元数据的方法依然是采用遍历查找的办法。</p>
+<h3 id="防御方法"><a class="markdownIt-Anchor" href="#防御方法"></a> 防御方法</h3>
+<p>根源问题：服务端把⽤户输⼊当作命令执⾏</p>
+<ol>
+<li>校验⽤户输⼊参数，过滤连接符</li>
+<li>对用户输入转义</li>
+<li>数据库异常信息隐藏，将异常进⾏封装，防⽌基于报错的SQL注⼊</li>
+<li>数据库敏感信息加密，⽤MD5哈希的时候，记得加盐</li>
+<li>安装web应⽤防⽕墙WAF</li>
+<li>将输⼊进⾏参数化</li>
+</ol>
+<h2 id="命令注入漏洞"><a class="markdownIt-Anchor" href="#命令注入漏洞"></a> 命令注入漏洞</h2>
+<p>和sql注入类似，将用户对输入当成shell命令去执行。这里不赘述了</p>
+<h2 id="文件上传漏洞"><a class="markdownIt-Anchor" href="#文件上传漏洞"></a> 文件上传漏洞</h2>
+<h3 id="简介-2"><a class="markdownIt-Anchor" href="#简介-2"></a> 简介</h3>
+<p>前端⻚⾯需要⽤户上传⽂件的时候，攻击者上传恶意的⽂件，⽐如上传后⻔病毒⽊⻢到⽹站中，⽹站因此遭到破坏或是⼊侵。</p>
+<h3 id="防御方法-2"><a class="markdownIt-Anchor" href="#防御方法-2"></a> 防御方法</h3>
+<p>这里给几个简单的防御手段。</p>
+<p><strong>代码层面</strong>：</p>
+<ol>
+<li>在前后端增加文件校验接口</li>
+<li>对文件进行内容二次渲染</li>
+<li>重命名文件，将文件隔离出来，访问时只访问文件的路径。</li>
+</ol>
+<p><strong>管理层面</strong>：</p>
+<ol>
+<li>部署WAF防⽕墙</li>
+<li>正确配置服务器请求类型(禁⽌使⽤PUT请求⽅法)</li>
+<li>及时更新系统、中间件、脚本、数据库、CMS或框架的漏洞补丁(避免解析漏洞)</li>
+</ol>
+<p><strong>权限控制层面</strong>：<br />
+限制上传⽬录下拥有的执⾏权限</p>
+<h2 id="xss跨站脚本攻击"><a class="markdownIt-Anchor" href="#xss跨站脚本攻击"></a> XSS跨站脚本攻击</h2>
+<p>原理：跨站脚本攻击利⽤了⽹站对⽤户输⼊的不正确处理，使得恶意⽤户能够向受害者的⽹⻚中注⼊恶意脚本。这些脚本在⽤户浏览器中执⾏，从⽽<br />
+导致安全⻛险。跨站脚本攻击的主要原理包括：</p>
+<ul>
+<li>⽤户输⼊未经过滤或转义：⽹站未正确过滤或转义⽤户输⼊，使得恶意⽤户能够插⼊恶意脚本。</li>
+<li>脚本在⽤户浏览器中执⾏：⼀旦恶意脚本被注⼊到受害者的⽹⻚中，它将在⽤户浏览器中执⾏，攻击者可利⽤此执⾏环境进⾏进⼀步攻击。</li>
+</ul>
+<p>常见的事发网站：日志，小说，论坛等内容存储网站。</p>
+<h3 id="xss攻击类别"><a class="markdownIt-Anchor" href="#xss攻击类别"></a> XSS攻击类别</h3>
+<h4 id="反射型-xss"><a class="markdownIt-Anchor" href="#反射型-xss"></a> 反射型 XSS</h4>
+<p>反射型 XSS 是最常⻅的 XSS 攻击类型。攻击者构造恶意的 URL，其中包含恶意脚本。当⽤户点击带有恶意参数的 URL 时，服务器将恶意脚本作<br />
+为响应的⼀部分返回给⽤户浏览器，并在浏览器中执⾏。</p>
+<h4 id="存储型-xss"><a class="markdownIt-Anchor" href="#存储型-xss"></a> 存储型 XSS</h4>
+<p>存储型 XSS 发⽣在⽹站存储⽤户提交的数据，且未经过滤或转义的情况下直接在⽹⻚中显示。攻击者提交包含恶意脚本的数据，然后其他⽤户在访问包含该数据的⻚⾯时，恶意脚本将在他们的浏览器中执⾏。</p>
+<h4 id="dom型-xss"><a class="markdownIt-Anchor" href="#dom型-xss"></a> DOM型 XSS</h4>
+<p>DOM 型 XSS 是基于⽂档对象模型（Document Object Model，DOM）的⼀种XSS攻击。攻击者构造恶意URL，其中包含恶意脚本。当⽤户点击包含恶意参数的URL时，恶意脚本修改⻚⾯的 DOM 结构，从⽽导致安全漏洞。</p>
+<h3 id="利用流程"><a class="markdownIt-Anchor" href="#利用流程"></a> 利用流程</h3>
+<p>总体通过四种途径来利用：</p>
+<ol>
+<li>输入字段和表单</li>
+<li>URL参数</li>
+<li>富文本编辑器</li>
+</ol>
+<h3 id="防御方法-3"><a class="markdownIt-Anchor" href="#防御方法-3"></a> 防御方法</h3>
+<p>为了有效防御跨站脚本攻击，以下是⼀些常⻅的防御措施：</p>
+<ol>
+<li>输⼊验证和过滤<br />
+⽹站应该对⽤户输⼊的数据进⾏验证和过滤，确保只接受预期的输⼊。例如，可以使⽤⽩名单过滤，只允许特定字符和标记，同时拒绝其他<br />
+潜在的恶意脚本。</li>
+<li>输出转义<br />
+在将⽤户输⼊的数据显示在⽹⻚中时，应该对其进⾏适当的输出转<br />
+义，以确保浏览器将其视为纯⽂本⽽不是可执⾏的代码。这样可以防⽌恶<br />
+意脚本在⽤户浏览器中执⾏。</li>
+<li>设置 HTTP 头部<br />
+通过设置适当的 HTTP 头部，可以增强⽹站的安全性。例如，可以使⽤ Content Security Policy（CSP）来限制⻚⾯中允许执⾏的脚本来源，从⽽减少跨站脚本攻击的⻛险。</li>
+</ol>
+<h2 id="csrf跨站请求伪造"><a class="markdownIt-Anchor" href="#csrf跨站请求伪造"></a> CSRF跨站请求伪造</h2>
+<p>原理:攻击者通过伪造⽤户的浏览器的请求，向访问⼀个⽤户⾃⼰曾经认证访问过的⽹站发送出去，使⽬标⽹站接收并误以为是⽤户的真实操作⽽去执⾏命令。常⽤于盗取账号、转账、发送虚假消息等。攻击者利⽤⽹站对请求的验证漏洞⽽实现这样的攻击⾏为，⽹站能够确认请求来源于⽤户的浏览器，却不能验证请求是否源于⽤户的真实意愿下的操作⾏为。</p>
+<h3 id="csrf等攻击流程"><a class="markdownIt-Anchor" href="#csrf等攻击流程"></a> CSRF等攻击流程</h3>
+<ul>
+<li>用户浏览并登录信任的网站 A，通过用户认证后，会在浏览器中生成针对 A 网站的 Cookie；</li>
+<li>用户在没有退出网站 A 的情况下访问网站 B，然后网站 B 向网站 A 发起一个请求；</li>
+<li>用户浏览器根据网站 B 的请求，携带 Cookie 访问网站 A；</li>
+<li>由于浏览器会自动带上用户的 Cookie，所以网站 A 接收到请求之后会根据用户具备的权限进行访问控制，这样相当于用户本身在访问网站 A，从而网站 B 就达到了模拟用户访问网站 A 的操作过程。</li>
+</ul>
+<h3 id="关于cors"><a class="markdownIt-Anchor" href="#关于cors"></a> 关于CORS</h3>
+<p>这里我想要提一嘴cors,经常做研发的小伙伴都知道，跨域问题在我们日常开发中特别常见。</p>
+<p>由于当下的 Web 应用程序开发基本都采用了前后端分离的开发模式，例如，当我们访问“<a target="_blank" rel="noopener" href="http://test.com">test.com</a>”前端域名时，在前端中会访问“<a target="_blank" rel="noopener" href="http://api.test.com">api.test.com</a>”后端路由获得服务。但是这个请求已经跨越了两个域名，因此浏览器默认会拒绝这种访问。</p>
+<p>请注意，<strong>跨域是浏览器的一种同源安全策略，是浏览器单方面限制的，所以仅在客户端运行在浏览器中</strong>才需要考虑这个问题。</p>
+<p>浏览器在 HTTP 请求的消息头部分新增一些字段，如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//浏览器自己设置的请求域名</span><br><span class="line">Origin     </span><br><span class="line">//浏览器告诉服务器请求需要用到哪些 HTTP 方法</span><br><span class="line">Access-Control-Request-Method</span><br><span class="line">//浏览器告诉服务器请求需要用到哪些 HTTP 消息头</span><br><span class="line">Access-Control-Request-Headers</span><br></pre></td></tr></table></figure>
+<p>当浏览器进行跨域请求时会和服务器端进行一次的握手协议，从响应结果中可以获取如下信息:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//指定哪些客户端的域名允许访问这个资源</span><br><span class="line">Access-Control-Allow-Origin </span><br><span class="line">//服务器支持的 HTTP 方法</span><br><span class="line">Access-Control-Allow-Methods </span><br><span class="line">//需要在正式请求中加入的 HTTP 消息头</span><br><span class="line">Access-Control-Allow-Headers</span><br></pre></td></tr></table></figure>
+<p>综上所述，浏览器在跨域请求时会和服务器通信访问的方法和访问的源域名。而服务器恰好可以设置允许哪些域名可以访问，那么我们就知道如何解决CORS问题了：<strong>服务器合理设置这些响应结果中的消息头</strong>。</p>
+<p>就是我们开发中经常使用的CorsFilter</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">config.setAllowedOrigins(Arrays.asList(<span class="string">&quot;*&quot;</span>));</span><br><span class="line"></span><br><span class="line">config.setAllowedMethods(Arrays.asList(<span class="string">&quot;*&quot;</span>));</span><br></pre></td></tr></table></figure>
+<p>通过这样的配置使得所有请求可以跨域访问。注意这样配置的重点是让<strong>浏览器能够将所有其他域的请求转发</strong>给服务器，如果要防止CSRF类的攻击，后端还是要对所有请求做校验。</p>
+<p>小结一下：CSRF 是一种攻击行为，所以我们需要对系统进行保护，而 CORS 更多的是一种前后端开发模式上的约定。</p>
+<h3 id="防御方法-4"><a class="markdownIt-Anchor" href="#防御方法-4"></a> 防御方法</h3>
+<ol>
+<li><strong>验证 HTTP Referer 字段</strong>:根据 HTTP 协议，在 HTTP 头中有⼀个字段叫 Referer，它记录了该<br />
+HTTP 请求的来源地址。服务端只需要娇艳请求验证其 Referer 值。</li>
+<li><strong>在请求地址中添加 token 并验证</strong>:可以在 HTTP 请求中以参数的形式加⼊⼀个随机产⽣的token，并在服务器端建⽴⼀个拦截器来验证这个 token，如果请求中没有token 或者 token 内容不正确，则认为可能是 CSRF 攻击⽽拒绝该请求。</li>
+</ol>
+<blockquote>
+<p>这里补充几个小知识点：</p>
+<p>浏览器在Post请求中自动带上cookie的条件（假设请求http://aaa.www.com/xxxxx/list）：<br />
+1、domain=域名,或者为其子域名（<a target="_blank" rel="noopener" href="http://aaa.www.com">aaa.www.com</a> <a target="_blank" rel="noopener" href="http://xn--www-8i4e.com">和www.com</a>）<br />
+2、仅在 HTTPS 安全通信时才会发送 Cookie<br />
+3、path=PATH<br />
+注意：每个cookie都存在着<strong>domain</strong>和<strong>path</strong>存储cookie来自的域和请求路径。</p>
+<p>CSRF token 不会自动被浏览器附带在请求中，需要开发者显式添加。这意味着攻击者不能仅凭 cookie 发起有效请求，因为缺少正确的 token。所以token可以抵御csrf攻击</p>
+</blockquote>
+<ol start="3">
+<li><strong>在 HTTP 头中⾃定义属性并验证</strong>:</li>
+</ol>
+<h2 id="ssrf-服务端请求伪造"><a class="markdownIt-Anchor" href="#ssrf-服务端请求伪造"></a> SSRF 服务端请求伪造</h2>
+<p>SSRF （Server-Side Request Forgery），服务器端请求伪造，是强制服务器发起由攻击者伪造的请求的⼀种安全漏洞。 请求伪造，就是攻击者伪造正常的请求，以达到攻击的⽬的，就是常⻅的Web安全漏洞之⼀。如果“请求伪造”发⽣在服务器端，那么这个漏洞就叫做“服务器端请求伪造”。</p>
+<h3 id="漏洞原因"><a class="markdownIt-Anchor" href="#漏洞原因"></a> 漏洞原因</h3>
+<p>服务端提供了从其他服务器应⽤（也可以是本地）获取数据的功能；服务端对⽤户提供的URL和远端服务器返回的信息没有进⾏合适的验证或者过滤。</p>
+<h3 id="漏洞利用流程"><a class="markdownIt-Anchor" href="#漏洞利用流程"></a> 漏洞利用流程</h3>
+<p>当攻击者想要访问服务器B上的服务，但是由于存在防火墙或者服务器B是属于内网主机等原因导致攻击者无法直接访问。如果服务器A存在SSRF漏洞，这时攻击者可以借助服务器A来发起SSRF攻击，通过服务器A向主机B发起请求，达到攻击内网的目的。如图<br />
+<img src="/images/%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/ssrf%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B.png" alt="" /></p>
+<blockquote>
+<p>这里我们可以推断出，在服务端提供重定向访问的服务如<code>RedirectView.setURL</code>等，容易存在SSRF漏洞</p>
+</blockquote>
+<p>OK，这篇文章的内容就先到这，后面再补充一些安全相关的知识</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>常见漏洞原理</p><p><a href="https://cdn-sone.github.io/2024/06/05/常见漏洞原理/">https://cdn-sone.github.io/2024/06/05/常见漏洞原理/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>CDN</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-06-05</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-06-06</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="../../../../tags/%E5%AE%89%E5%85%A8/">安全</a></div><div class="a2a_kit a2a_kit_size_32 a2a_default_style"><a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a><a class="a2a_button_facebook"></a><a class="a2a_button_twitter"></a><a class="a2a_button_telegram"></a><a class="a2a_button_whatsapp"></a><a class="a2a_button_reddit"></a></div><script src="https://static.addtoany.com/menu/page.js" defer></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="../../../../img/alipay.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="../../../../img/wechat.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="../../15/hexo-Icarus%E9%A1%B5%E9%9D%A2%E4%BC%98%E5%8C%96/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">hexo-Icarus页面优化</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="../../04/AQS%E4%B8%8EJUC/"><span class="level-item">AQS与JUC</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">评论</h3><div class="content" id="valine-thread"></div><script src="//cdn.jsdelivr.net/npm/leancloud-storage@3/dist/av-min.js"></script><script src="https://cdn.jsdelivr.net/npm/valine@1.4.16/dist/Valine.min.js"></script><script>new Valine({
+            el: '#valine-thread',
+            appId: "dhLX9c4sZ5PYVbbSjxpX6XXh-MdYXbMMI",
+            appKey: "iV8cPlsr25mxoVBH3dYgsAmV",
+            
+            avatar: "mm",
+            avatarForce: false,
+            meta: ["nick","mail","link"],
+            pageSize: 10,
+            lang: "zh-CN",
+            visitor: false,
+            highlight: true,
+            recordIP: false,
+            
+            
+            
+            enableQQ: false,
+            requiredFields: [],
+        });</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#sql注入"><span class="level-left"><span class="level-item">1</span><span class="level-item"> SQL注入</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#简介"><span class="level-left"><span class="level-item">1.1</span><span class="level-item"> 简介</span></span></a></li><li><a class="level is-mobile" href="#基于布尔类型的盲注"><span class="level-left"><span class="level-item">1.2</span><span class="level-item"> 基于布尔类型的盲注</span></span></a></li><li><a class="level is-mobile" href="#基于时间的盲注"><span class="level-left"><span class="level-item">1.3</span><span class="level-item"> 基于时间的盲注</span></span></a></li><li><a class="level is-mobile" href="#基于报错的注入"><span class="level-left"><span class="level-item">1.4</span><span class="level-item"> 基于报错的注⼊</span></span></a></li><li><a class="level is-mobile" href="#sql注入的基本流程"><span class="level-left"><span class="level-item">1.5</span><span class="level-item"> SQL注入的基本流程</span></span></a></li><li><a class="level is-mobile" href="#防御方法"><span class="level-left"><span class="level-item">1.6</span><span class="level-item"> 防御方法</span></span></a></li></ul></li><li><a class="level is-mobile" href="#命令注入漏洞"><span class="level-left"><span class="level-item">2</span><span class="level-item"> 命令注入漏洞</span></span></a></li><li><a class="level is-mobile" href="#文件上传漏洞"><span class="level-left"><span class="level-item">3</span><span class="level-item"> 文件上传漏洞</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#简介-2"><span class="level-left"><span class="level-item">3.1</span><span class="level-item"> 简介</span></span></a></li><li><a class="level is-mobile" href="#防御方法-2"><span class="level-left"><span class="level-item">3.2</span><span class="level-item"> 防御方法</span></span></a></li></ul></li><li><a class="level is-mobile" href="#xss跨站脚本攻击"><span class="level-left"><span class="level-item">4</span><span class="level-item"> XSS跨站脚本攻击</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#xss攻击类别"><span class="level-left"><span class="level-item">4.1</span><span class="level-item"> XSS攻击类别</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#反射型-xss"><span class="level-left"><span class="level-item">4.1.1</span><span class="level-item"> 反射型 XSS</span></span></a></li><li><a class="level is-mobile" href="#存储型-xss"><span class="level-left"><span class="level-item">4.1.2</span><span class="level-item"> 存储型 XSS</span></span></a></li><li><a class="level is-mobile" href="#dom型-xss"><span class="level-left"><span class="level-item">4.1.3</span><span class="level-item"> DOM型 XSS</span></span></a></li></ul></li><li><a class="level is-mobile" href="#利用流程"><span class="level-left"><span class="level-item">4.2</span><span class="level-item"> 利用流程</span></span></a></li><li><a class="level is-mobile" href="#防御方法-3"><span class="level-left"><span class="level-item">4.3</span><span class="level-item"> 防御方法</span></span></a></li></ul></li><li><a class="level is-mobile" href="#csrf跨站请求伪造"><span class="level-left"><span class="level-item">5</span><span class="level-item"> CSRF跨站请求伪造</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#csrf等攻击流程"><span class="level-left"><span class="level-item">5.1</span><span class="level-item"> CSRF等攻击流程</span></span></a></li><li><a class="level is-mobile" href="#关于cors"><span class="level-left"><span class="level-item">5.2</span><span class="level-item"> 关于CORS</span></span></a></li><li><a class="level is-mobile" href="#防御方法-4"><span class="level-left"><span class="level-item">5.3</span><span class="level-item"> 防御方法</span></span></a></li></ul></li><li><a class="level is-mobile" href="#ssrf-服务端请求伪造"><span class="level-left"><span class="level-item">6</span><span class="level-item"> SSRF 服务端请求伪造</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#漏洞原因"><span class="level-left"><span class="level-item">6.1</span><span class="level-item"> 漏洞原因</span></span></a></li><li><a class="level is-mobile" href="#漏洞利用流程"><span class="level-left"><span class="level-item">6.2</span><span class="level-item"> 漏洞利用流程</span></span></a></li></ul></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="../../../../js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="../../../../img/avatar.png" alt="CDN"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">CDN</p><p class="is-size-6 is-block">研究生</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="../../../../archives"><p class="title">8</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="../../../../categories"><p class="title">4</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="../../../../tags"><p class="title">7</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/CDN-Sone" target="_blank" rel="me noopener">关注我</a></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../categories/java/"><span class="level-start"><span class="level-item">java</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%9F%BA%E4%BA%8E%E6%A0%BC%E7%9A%84%E5%B1%9E%E6%80%A7%E5%9F%BA%E5%8A%A0%E5%AF%86/"><span class="level-start"><span class="level-item">基于格的属性基加密</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%B7%A5%E4%BD%9C/"><span class="level-start"><span class="level-item">工作</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/"><span class="level-start"><span class="level-item">网络安全</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-29T13:52:10.000Z">2024-06-29</time></p><p class="title"><a href="../../29/git%EF%BC%9A%E4%BD%A0%E7%9A%84%E4%BA%B2%E7%88%B8%E7%88%B8/">git：你的亲爸爸</a></p><p class="categories"><a href="../../../../categories/%E5%B7%A5%E4%BD%9C/">工作</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-16T04:01:15.000Z">2024-06-16</time></p><p class="title"><a href="../../16/AQS%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E4%BA%8C/">AQS源码解析(二)</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-15T15:08:24.000Z">2024-06-15</time></p><p class="title"><a href="../../15/hexo-Icarus%E9%A1%B5%E9%9D%A2%E4%BC%98%E5%8C%96/">hexo-Icarus页面优化</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-05T04:37:37.000Z">2024-06-05</time></p><p class="title"><a href="">常见漏洞原理</a></p><p class="categories"><a href="../../../../categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-04T01:43:19.000Z">2024-06-04</time></p><p class="title"><a href="../../04/AQS%E4%B8%8EJUC/">AQS与JUC</a></p><p class="categories"><a href="../../../../categories/java/">java</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="../../../../archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="../../../../tags/ABE/"><span class="tag">ABE</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/Lattice/"><span class="tag">Lattice</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/hexo/"><span class="tag">hexo</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%AE%89%E5%85%A8/"><span class="tag">安全</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B7%A5%E5%85%B7/"><span class="tag">工具</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"><span class="tag">并发编程</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"><span class="tag">源码解析</span><span class="tag">1</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="../../../../index.html"><img src="../../../../img/logo.png" alt="dawnsBlog" height="28"></a><p class="is-size-7"><span>&copy; 2024 CDN</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2019</p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="../../../../js/column.js"></script><script src="../../../../js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="../../../../js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "此网站使用Cookie来改善您的体验。",
+          dismiss: "知道了！",
+          allow: "允许使用Cookie",
+          deny: "拒绝",
+          link: "了解更多",
+          policy: "Cookie政策",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/mhchem.min.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="../../../../js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="../../../../js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="../../../../js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"../../../../content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
