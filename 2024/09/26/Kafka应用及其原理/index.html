@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Kafka应用及其原理 - 重生之异世界读论文</title><link rel="manifest" href="../../../../manifest.json"><meta name="application-name" content="重生之异世界读论文"><meta name="msapplication-TileImage" content="/img/logo.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="重生之异世界读论文"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="这章将会介绍消息队列中间件，本章除了介绍Kafka中间件还会介绍几种常见的中间件。在学习中间件的时候一定要注意横向选型能力。"><meta property="og:type" content="blog"><meta property="og:title" content="Kafka应用及其原理"><meta property="og:url" content="https://cdn-sone.github.io/2024/09/26/Kafka%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E5%8E%9F%E7%90%86/"><meta property="og:site_name" content="重生之异世界读论文"><meta property="og:description" content="这章将会介绍消息队列中间件，本章除了介绍Kafka中间件还会介绍几种常见的中间件。在学习中间件的时候一定要注意横向选型能力。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn-sone.github.io/images/Kafka/topic%E7%BB%93%E6%9E%84.png"><meta property="og:image" content="https://cdn-sone.github.io/images/Kafka/Kafka%E6%9E%B6%E6%9E%84%E5%9B%BE.png"><meta property="og:image" content="https://cdn-sone.github.io/images/Kafka/%E7%A8%80%E7%96%8F%E7%B4%A2%E5%BC%95.png"><meta property="og:image" content="https://cdn-sone.github.io/2024/09/26/Kafka%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E5%8E%9F%E7%90%86/%5B/images/Kafka/Kafka%E6%9E%B6%E6%9E%84%E5%9B%BE.png%5D(https://oss.javaguide.cn/github/javaguide/high-performance/message-queue20210507200944439.png)"><meta property="og:image" content="https://cdn-sone.github.io/images/Kafka/%E9%9B%B6%E6%8B%B7%E8%B4%9D%E6%8A%80%E6%9C%AF.png"><meta property="og:image" content="https://cdn-sone.github.io/images/Kafka/%E9%9D%9E%E9%9B%B6%E6%8B%B7%E8%B4%9D%E6%8A%80%E6%9C%AF.png"><meta property="article:published_time" content="2024-09-26T03:20:01.000Z"><meta property="article:modified_time" content="2024-09-30T09:57:01.993Z"><meta property="article:author" content="CDN"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://cdn-sone.github.io/images/Kafka/topic%E7%BB%93%E6%9E%84.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://cdn-sone.github.io/2024/09/26/Kafka%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E5%8E%9F%E7%90%86/"},"headline":"Kafka应用及其原理","image":["https://cdn-sone.github.io/images/Kafka/topic%E7%BB%93%E6%9E%84.png","https://cdn-sone.github.io/images/Kafka/Kafka%E6%9E%B6%E6%9E%84%E5%9B%BE.png","https://cdn-sone.github.io/images/Kafka/%E7%A8%80%E7%96%8F%E7%B4%A2%E5%BC%95.png","https://cdn-sone.github.io/images/Kafka/%E9%9B%B6%E6%8B%B7%E8%B4%9D%E6%8A%80%E6%9C%AF.png","https://cdn-sone.github.io/images/Kafka/%E9%9D%9E%E9%9B%B6%E6%8B%B7%E8%B4%9D%E6%8A%80%E6%9C%AF.png"],"datePublished":"2024-09-26T03:20:01.000Z","dateModified":"2024-09-30T09:57:01.993Z","author":{"@type":"Person","name":"CDN"},"publisher":{"@type":"Organization","name":"重生之异世界读论文","logo":{"@type":"ImageObject","url":"https://cdn-sone.github.io/img/logo.png"}},"description":"这章将会介绍消息队列中间件，本章除了介绍Kafka中间件还会介绍几种常见的中间件。在学习中间件的时候一定要注意横向选型能力。"}</script><link rel="canonical" href="https://cdn-sone.github.io/2024/09/26/Kafka%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E5%8E%9F%E7%90%86/"><link rel="icon" href="../../../../img/logo.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="../../../../css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="../../../../index.html"><img src="../../../../img/logo.png" alt="重生之异世界读论文" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="../../../../index.html">Home</a><a class="navbar-item" href="../../../../archives">Archives</a><a class="navbar-item" href="../../../../categories">Categories</a><a class="navbar-item" href="../../../../tags">Tags</a><a class="navbar-item" href="../../../../about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2024-09-26T03:20:01.000Z" title="2024/9/26 11:20:01">2024-09-26</time>发表</span><span class="level-item"><time dateTime="2024-09-30T09:57:01.993Z" title="2024/9/30 17:57:01">2024-09-30</time>更新</span><span class="level-item">16 分钟读完 (大约2413个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Kafka应用及其原理</h1><div class="content"><p>这章将会介绍消息队列中间件，本章除了介绍Kafka中间件还会介绍几种常见的中间件。在学习中间件的时候一定要注意横向选型能力。</p>
+<span id="more"></span>
+<h2 id="常用的mq介绍"><a class="markdownIt-Anchor" href="#常用的mq介绍"></a> 常用的MQ介绍</h2>
+<h3 id="kafka"><a class="markdownIt-Anchor" href="#kafka"></a> Kafka</h3>
+<p>概述：</p>
+<ol>
+<li>最初由LinkedIn公司基于独特的设计实现为一个<code>分布式的日志提交系统</code>。(要求快，但是允许低丢失)。</li>
+<li>其性能高效（快），可扩展性好（很多公司选择在此结构上扩展），可持久化，且分区特性使其可复制、容错均不错。</li>
+</ol>
+<p>优点：</p>
+<ol>
+<li>客户端支持的语言丰富。</li>
+<li>高性能：单机写入TPS约在100万条/秒，消息大小10个字节。</li>
+<li>消费者采用Pull方式获取消息。消息有序，通过控制能够保证所有消息被消费且仅被消费一次。</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li>Kafka单机超过64个队列/分区时，Load时会发生明显的飙高现象。队列越多，负载越高，发送消息响应时间变长。</li>
+<li>使用短轮询方式，实时性取决于轮询间隔时间。</li>
+<li>消费失败不支持重试。</li>
+</ol>
+<h3 id="rocketmq"><a class="markdownIt-Anchor" href="#rocketmq"></a> RocketMQ</h3>
+<p>概述：RocketMQ出自阿里的开源产品，用Java语言实现，在设计时参考了Kafka，并做出了自己的一些改进（支持几十种消息收发的方式，串行，阻塞式，基于sql等等），消息可靠性上比Kafka更好。</p>
+<h3 id="rabbitmq"><a class="markdownIt-Anchor" href="#rabbitmq"></a> RabbitMQ</h3>
+<p>概述：稳定性极高，用户界面非常友好。它提供了多种技术可以让你在性能和可靠性之间进行权衡。这些技术包括持久性机制、投递确认、发布者证实和高可用性机制；灵活的路由，消息在到达队列前是通过交换机进行路由的。</p>
+<h2 id="kafka配置"><a class="markdownIt-Anchor" href="#kafka配置"></a> Kafka配置</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">属性</th>
+<th style="text-align:left">默认值</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><a target="_blank" rel="noopener" href="http://broker.id">broker.id</a></td>
+<td style="text-align:left">0</td>
+<td style="text-align:left">每个broker的唯一标志符 ｜</td>
+</tr>
+<tr>
+<td style="text-align:center">log.dirs</td>
+<td style="text-align:left">/tmp/kafka-logs</td>
+<td style="text-align:left">kafka存放数据的路径 ｜</td>
+</tr>
+<tr>
+<td style="text-align:center">listeners</td>
+<td style="text-align:left">PLAINTEXT://192.168.65.60.9092</td>
+<td style="text-align:left">kafka的监听ip</td>
+</tr>
+<tr>
+<td style="text-align:center">zookerper.connect</td>
+<td style="text-align:left">localhost:2181</td>
+<td style="text-align:left">zk集群中的节点</td>
+</tr>
+<tr>
+<td style="text-align:center">num.partitions</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left">创建topic的默认分区数</td>
+</tr>
+<tr>
+<td style="text-align:center">default.replication.factor</td>
+<td style="text-align:left">1</td>
+<td style="text-align:left">自动创建topic的默认副本数量，建立设置为大于等于2</td>
+</tr>
+</tbody>
+</table>
+<p>｜ min.insync.replicas ｜ 1 ｜ 指定消息成功写入时，最小的副本同步数量 ｜</p>
+<h2 id="基本概念"><a class="markdownIt-Anchor" href="#基本概念"></a> 基本概念</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">名词</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Broker</td>
+<td style="text-align:left">【节点】一个Kafka节点就是一个Broker，一个和多个Broker可以组成一个Kafka集群</td>
+</tr>
+<tr>
+<td style="text-align:center">Topic</td>
+<td style="text-align:left">【主题】Kafka根据topic对消息进行归类，发布到kafka集群的每套消息都需要指定一个topic，topic是一个逻辑概念，物理上是不存在的</td>
+</tr>
+<tr>
+<td style="text-align:center">Producer</td>
+<td style="text-align:left">【生产者】用于向Kafka中发送消息</td>
+</tr>
+<tr>
+<td style="text-align:center">Consumer</td>
+<td style="text-align:left">【消费者】从Kafka中获取消息</td>
+</tr>
+<tr>
+<td style="text-align:center">Consumer Group</td>
+<td style="text-align:left">【消费组】每个Consumer都会归属于一个消费组，一条消息可以同时被多个不同的消费组消费，但是只能被一个消费组中的消费者消费</td>
+</tr>
+<tr>
+<td style="text-align:center">Partition</td>
+<td style="text-align:left">【分片】物理上的概念，可以将一个topic上的数据拆分为多分放到Partition中，每个Patition内部的消息是有序的。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="kafka的存储结构"><a class="markdownIt-Anchor" href="#kafka的存储结构"></a> Kafka的存储结构</h3>
+<p>消息是会被存储在kafka中的文件里的，并且是顺序存储的，消息有偏移量的概念，所以我们可以指定偏移量去读取某个位置的消息。<br />
+<img src="/images/Kafka/topic%E7%BB%93%E6%9E%84.png" alt="" /></p>
+<h3 id="单播消息和多播消息"><a class="markdownIt-Anchor" href="#单播消息和多播消息"></a> 单播消息和多播消息</h3>
+<p>所谓的单播消息和多播消息就是根据消费者是否在统一消费组中消费组中。</p>
+<ul>
+<li>
+<p>单播消息<br />
+概述：一个消费组里，只会有一个消费者能够消费到某个topic中的消息。</p>
+</li>
+<li>
+<p>多播消息<br />
+概述：一个topic下单消息被多个消费者消费。</p>
+</li>
+</ul>
+<p>架构图如下（引自JavaGuide）<br />
+<img src="/images/Kafka/Kafka%E6%9E%B6%E6%9E%84%E5%9B%BE.png" alt="" /></p>
+<h3 id="稀疏索引"><a class="markdownIt-Anchor" href="#稀疏索引"></a> 稀疏索引</h3>
+<p>kafka收发消息速度快，那么在底层Kafka是如何存储消息的呢？在Kafka内部消息都是存在磁盘里的，所有的消息按照顺序写入磁盘（我们知道磁盘读写是慢于内存读写的。但是磁盘的顺序读写实际上和内存读写的速度差不多，而随机读写远远的慢于内存。Kafka使用在内存中顺序读写消息，使得消息收发快）。内部索引结构如下：<br />
+<img src="/images/Kafka/%E7%A8%80%E7%96%8F%E7%B4%A2%E5%BC%95.png" alt="" /></p>
+<h2 id="kafka集群"><a class="markdownIt-Anchor" href="#kafka集群"></a> Kafka集群</h2>
+<p>这里有几个概念注意下：</p>
+<article class="message is-info"><div class="message-body">
+<p>分区：一个主题中的消息量是非常大的，因此可以通过分区的设置，来分布式存储这些消息。</p>
+<p>副本：那么为了提高系统的可用性。我们把分片复制多个，这就是副本了。</p>
+<ul>
+<li>Leader:kafka的读写操作都发生在leader上，leader负责把数据同步给follower。若Leader挂掉了，那么经过主从选举，从多个follower中选举产生一个新的leader。</li>
+<li>Follower:follower接收leader同步过来的数据，它不提供读写（主要是为了保证多副本数据与消费的一致性）</li>
+</ul>
+</div></article>
+<h3 id="多分区消费组"><a class="markdownIt-Anchor" href="#多分区消费组"></a> 多分区消费组</h3>
+<p>消息队列模型如下，（引自javaguide）<br />
+<img src="%5B/images/Kafka/Kafka%E6%9E%B6%E6%9E%84%E5%9B%BE.png%5D(https://oss.javaguide.cn/github/javaguide/high-performance/message-queue20210507200944439.png)" alt="" /></p>
+<ul>
+<li>
+<p>在每个topic中，存在一个或多个partition。为了维护消息的有序性一个partition只能被一个消费组中的一个消费者消费（同一组的消费者消费消息是互斥），但是在多个partition的多个消费者消费的总顺序性是无法得到保证的（从这里可以看出如果要实现消息的有序性，用一个partition就可以了）。</p>
+</li>
+<li>
+<p>partition的数量决定了消费组中Consumer的数量，建议同一个消费组中的Consumer数量不要超过partition的数量，否则多余的Consumer就无法消费到消息了。但是，如果消费者挂掉了，那么就会触发rebalance机制，会由其他消费者来消费该分区。</p>
+</li>
+</ul>
+<h3 id="重平衡rebalance"><a class="markdownIt-Anchor" href="#重平衡rebalance"></a> 重平衡（Rebalance）</h3>
+<p>在重平衡之前，一个consumer gruop中有多个consumer组成，一个topic有多个partition组成，如何确定哪个consumer消费哪个分区？消费者消费有三种策略。</p>
+<ol>
+<li>Range：通过公式来计算某个消费者消费哪个分区</li>
+<li>RoundRobin：大家轮流对分区进行消费</li>
+<li>sticky：在触发rebalance之后，在消费者消费的原分区不变的基础上进行调整。</li>
+</ol>
+<h3 id="controller"><a class="markdownIt-Anchor" href="#controller"></a> controller</h3>
+<p>概述：Kafka集群中的Broker在ZK中创建临时序号节点，序号最小的节点也就是最先创建的那个节点，将作为集群的Controller，负责管理整个集群中的所有分区和副本的状态。</p>
+<h2 id="八股"><a class="markdownIt-Anchor" href="#八股"></a> 八股</h2>
+<h3 id="如何防止消息丢失"><a class="markdownIt-Anchor" href="#如何防止消息丢失"></a> 如何防止消息丢失</h3>
+<ul>
+<li>对于发送方：<br />
+将ack设置为1或者-1/all可以防止消息丢失，如果要做到99.9999%，ack要设置为-1/all。</li>
+<li>针对消费方：<br />
+把自动提交修改为手动提交。（防止消费异常，导致消息丢失）</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">acks</th>
+<th style="text-align:left">消息持久化机制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">-1/all</td>
+<td style="text-align:left">acks=all就意味着ISR列表里面的副本必须都要同步成功，才返回ack给消息队列，min.insync.replicas 这个配置是用来设置同步副本个数的下限，此时这个配置无效</td>
+</tr>
+<tr>
+<td style="text-align:center">0</td>
+<td style="text-align:left">表示producer不需要等待任何broker确认收到消息的ACK回复，就可以继续发送下一条消息。性能最高，但是最容易丢失消息</td>
+</tr>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:left">表示至少等待leader已经成功将数据写入本地日志，但是不需要等待所有follower都写入成功，就可以继续发送下一条消息。</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>针对接收方：</li>
+</ul>
+<h3 id="防止消息的重复消费"><a class="markdownIt-Anchor" href="#防止消息的重复消费"></a> 防止消息的重复消费</h3>
+<p>加入幂等处理：</p>
+<ol>
+<li>通过mysql插入业务id作为主键，因为主键具有唯一性，所以一次只能插入一条业务数据。</li>
+<li>使用redis或zk的分布式锁，实现对业务数据的幂等操作。</li>
+</ol>
+<h3 id="实现顺序消费"><a class="markdownIt-Anchor" href="#实现顺序消费"></a> 实现顺序消费</h3>
+<ul>
+<li>发送方：当收到ack时才继续发送消息，但只能保证，topic里面是有序的。</li>
+<li>接收方；在topic里只配置一个partition，或者consumer组里只有一个consumer</li>
+</ul>
+<h3 id="解决消息积压问题"><a class="markdownIt-Anchor" href="#解决消息积压问题"></a> 解决消息积压问题</h3>
+<p>解决思路：消息积压是因为消费者处理速度太慢，从消费者端进行处理。</p>
+<ol>
+<li>消费者采用多线程，或者增加消费者数量。</li>
+<li>对消费逻辑设置最大处理时延，即进行熔断降级。</li>
+</ol>
+<h3 id="实现单机下的高并发吞吐量"><a class="markdownIt-Anchor" href="#实现单机下的高并发吞吐量"></a> 实现单机下的高并发吞吐量</h3>
+<ul>
+<li>写入数据：页面缓存技术 + 磁盘顺序写</li>
+<li>读取数据：零拷贝技术</li>
+</ul>
+<p>简单看一下零拷贝技术和非零拷贝技术的区别<br />
+零拷贝技术：<br />
+<img src="/images/Kafka/%E9%9B%B6%E6%8B%B7%E8%B4%9D%E6%8A%80%E6%9C%AF.png" alt="" /><br />
+非零拷贝技术：<br />
+<img src="/images/Kafka/%E9%9D%9E%E9%9B%B6%E6%8B%B7%E8%B4%9D%E6%8A%80%E6%9C%AF.png" alt="" /><br />
+可以看出区别在于非零拷贝技术直接将数据传给网卡进行发送，少了一次拷贝到socket接口的操作。</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Kafka应用及其原理</p><p><a href="https://cdn-sone.github.io/2024/09/26/Kafka应用及其原理/">https://cdn-sone.github.io/2024/09/26/Kafka应用及其原理/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>CDN</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-09-26</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-09-30</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="a2a_kit a2a_kit_size_32 a2a_default_style"><a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a><a class="a2a_button_facebook"></a><a class="a2a_button_twitter"></a><a class="a2a_button_telegram"></a><a class="a2a_button_whatsapp"></a><a class="a2a_button_reddit"></a></div><script src="https://static.addtoany.com/menu/page.js" defer></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="../../../../img/alipay.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="../../../../img/wechat.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="../MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Mysql知识点</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="../../23/Redis%E6%A6%82%E8%BF%B0/"><span class="level-item">Redis概述</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">评论</h3><div class="content" id="valine-thread"></div><script src="//cdn.jsdelivr.net/npm/leancloud-storage@3/dist/av-min.js"></script><script src="https://cdn.jsdelivr.net/npm/valine@1.4.16/dist/Valine.min.js"></script><script>new Valine({
+            el: '#valine-thread',
+            appId: "dhLX9c4sZ5PYVbbSjxpX6XXh-MdYXbMMI",
+            appKey: "iV8cPlsr25mxoVBH3dYgsAmV",
+            
+            avatar: "mm",
+            avatarForce: false,
+            meta: ["nick","mail","link"],
+            pageSize: 10,
+            lang: "zh-CN",
+            visitor: false,
+            highlight: true,
+            recordIP: false,
+            
+            
+            
+            enableQQ: false,
+            requiredFields: [],
+        });</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#常用的mq介绍"><span class="level-left"><span class="level-item">1</span><span class="level-item"> 常用的MQ介绍</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#kafka"><span class="level-left"><span class="level-item">1.1</span><span class="level-item"> Kafka</span></span></a></li><li><a class="level is-mobile" href="#rocketmq"><span class="level-left"><span class="level-item">1.2</span><span class="level-item"> RocketMQ</span></span></a></li><li><a class="level is-mobile" href="#rabbitmq"><span class="level-left"><span class="level-item">1.3</span><span class="level-item"> RabbitMQ</span></span></a></li></ul></li><li><a class="level is-mobile" href="#kafka配置"><span class="level-left"><span class="level-item">2</span><span class="level-item"> Kafka配置</span></span></a></li><li><a class="level is-mobile" href="#基本概念"><span class="level-left"><span class="level-item">3</span><span class="level-item"> 基本概念</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#kafka的存储结构"><span class="level-left"><span class="level-item">3.1</span><span class="level-item"> Kafka的存储结构</span></span></a></li><li><a class="level is-mobile" href="#单播消息和多播消息"><span class="level-left"><span class="level-item">3.2</span><span class="level-item"> 单播消息和多播消息</span></span></a></li><li><a class="level is-mobile" href="#稀疏索引"><span class="level-left"><span class="level-item">3.3</span><span class="level-item"> 稀疏索引</span></span></a></li></ul></li><li><a class="level is-mobile" href="#kafka集群"><span class="level-left"><span class="level-item">4</span><span class="level-item"> Kafka集群</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#多分区消费组"><span class="level-left"><span class="level-item">4.1</span><span class="level-item"> 多分区消费组</span></span></a></li><li><a class="level is-mobile" href="#重平衡rebalance"><span class="level-left"><span class="level-item">4.2</span><span class="level-item"> 重平衡（Rebalance）</span></span></a></li><li><a class="level is-mobile" href="#controller"><span class="level-left"><span class="level-item">4.3</span><span class="level-item"> controller</span></span></a></li></ul></li><li><a class="level is-mobile" href="#八股"><span class="level-left"><span class="level-item">5</span><span class="level-item"> 八股</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#如何防止消息丢失"><span class="level-left"><span class="level-item">5.1</span><span class="level-item"> 如何防止消息丢失</span></span></a></li><li><a class="level is-mobile" href="#防止消息的重复消费"><span class="level-left"><span class="level-item">5.2</span><span class="level-item"> 防止消息的重复消费</span></span></a></li><li><a class="level is-mobile" href="#实现顺序消费"><span class="level-left"><span class="level-item">5.3</span><span class="level-item"> 实现顺序消费</span></span></a></li><li><a class="level is-mobile" href="#解决消息积压问题"><span class="level-left"><span class="level-item">5.4</span><span class="level-item"> 解决消息积压问题</span></span></a></li><li><a class="level is-mobile" href="#实现单机下的高并发吞吐量"><span class="level-left"><span class="level-item">5.5</span><span class="level-item"> 实现单机下的高并发吞吐量</span></span></a></li></ul></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="../../../../js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="../../../../img/avatar.png" alt="CDN"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">CDN</p><p class="is-size-6 is-block">研究生</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="../../../../archives"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="../../../../categories"><p class="title">4</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="../../../../tags"><p class="title">7</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/CDN-Sone" target="_blank" rel="me noopener">关注我</a></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../categories/java/"><span class="level-start"><span class="level-item">java</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%9F%BA%E4%BA%8E%E6%A0%BC%E7%9A%84%E5%B1%9E%E6%80%A7%E5%9F%BA%E5%8A%A0%E5%AF%86/"><span class="level-start"><span class="level-item">基于格的属性基加密</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%B7%A5%E4%BD%9C/"><span class="level-start"><span class="level-item">工作</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/"><span class="level-start"><span class="level-item">网络安全</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-26T11:53:15.000Z">2024-09-26</time></p><p class="title"><a href="../MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/">Mysql知识点</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-26T03:20:01.000Z">2024-09-26</time></p><p class="title"><a href="">Kafka应用及其原理</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-23T09:22:17.000Z">2024-09-23</time></p><p class="title"><a href="../../23/Redis%E6%A6%82%E8%BF%B0/">Redis概述</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-29T13:52:10.000Z">2024-06-29</time></p><p class="title"><a href="../../../06/29/git%E6%8C%87%E5%8D%97/">git指南</a></p><p class="categories"><a href="../../../../categories/%E5%B7%A5%E4%BD%9C/">工作</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-16T04:01:15.000Z">2024-06-16</time></p><p class="title"><a href="../../../06/16/AQS%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">AQS源码解析(二)</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../archives/2024/09/"><span class="level-start"><span class="level-item">九月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="../../../../archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="../../../../archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="../../../../tags/ABE/"><span class="tag">ABE</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/Lattice/"><span class="tag">Lattice</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/hexo/"><span class="tag">hexo</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%AE%89%E5%85%A8/"><span class="tag">安全</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B7%A5%E5%85%B7/"><span class="tag">工具</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"><span class="tag">并发编程</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"><span class="tag">源码解析</span><span class="tag">1</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="../../../../index.html"><img src="../../../../img/logo.png" alt="重生之异世界读论文" height="28"></a><p class="is-size-7"><span>&copy; 2024 CDN</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2019</p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="../../../../js/column.js"></script><script src="../../../../js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="../../../../js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "此网站使用Cookie来改善您的体验。",
+          dismiss: "知道了！",
+          allow: "允许使用Cookie",
+          deny: "拒绝",
+          link: "了解更多",
+          policy: "Cookie政策",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/auto-render.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/contrib/mhchem.min.js" defer></script><script>window.addEventListener("load", function() {
+            document.querySelectorAll('[role="article"] > .content').forEach(function(element) {
+                renderMathInElement(element);
+            });
+        });</script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="../../../../js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="../../../../js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="../../../../js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"../../../../content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
