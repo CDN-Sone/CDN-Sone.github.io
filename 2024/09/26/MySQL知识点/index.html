@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Mysql知识点 - 重生之异世界读论文</title><link rel="manifest" href="../../../../manifest.json"><meta name="application-name" content="重生之异世界读论文"><meta name="msapplication-TileImage" content="/img/logo.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="重生之异世界读论文"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="这一章将会讲解mysql相关的知识点。"><meta property="og:type" content="blog"><meta property="og:title" content="Mysql知识点"><meta property="og:url" content="https://cdn-sone.github.io/2024/09/26/MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/"><meta property="og:site_name" content="重生之异世界读论文"><meta property="og:description" content="这一章将会讲解mysql相关的知识点。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://oss.javaguide.cn/github/javaguide/mysql/summary-of-mysql-field-types.png"><meta property="article:published_time" content="2024-09-26T11:53:15.000Z"><meta property="article:modified_time" content="2024-10-07T08:50:35.888Z"><meta property="article:author" content="CDN"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://oss.javaguide.cn/github/javaguide/mysql/summary-of-mysql-field-types.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://cdn-sone.github.io/2024/09/26/MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/"},"headline":"Mysql知识点","image":["https://oss.javaguide.cn/github/javaguide/mysql/summary-of-mysql-field-types.png"],"datePublished":"2024-09-26T11:53:15.000Z","dateModified":"2024-10-07T08:50:35.888Z","author":{"@type":"Person","name":"CDN"},"publisher":{"@type":"Organization","name":"重生之异世界读论文","logo":{"@type":"ImageObject","url":"https://cdn-sone.github.io/img/logo.png"}},"description":"这一章将会讲解mysql相关的知识点。"}</script><link rel="canonical" href="https://cdn-sone.github.io/2024/09/26/MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/"><link rel="icon" href="../../../../img/logo.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="../../../../css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Mysql知识点 - 重生之异世界读论文</title><link rel="manifest" href="../../../../manifest.json"><meta name="application-name" content="重生之异世界读论文"><meta name="msapplication-TileImage" content="/img/logo.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="重生之异世界读论文"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="这一章将会讲解mysql相关的知识点。"><meta property="og:type" content="blog"><meta property="og:title" content="Mysql知识点"><meta property="og:url" content="https://cdn-sone.github.io/2024/09/26/MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/"><meta property="og:site_name" content="重生之异世界读论文"><meta property="og:description" content="这一章将会讲解mysql相关的知识点。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/summary-of-mysql-field-types.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/page-struct.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/page-record.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/record.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/page-directory.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/page-full.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/index-primarykey.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/index-next.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/index-union.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/redolog-simple.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/redolog-complex.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/undo-insert.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/undo-update.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/transcation-state.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/mvcc-train.png"><meta property="og:image" content="https://cdn-sone.github.io/images/MySQL/lock.png"><meta property="article:published_time" content="2024-09-26T11:53:15.000Z"><meta property="article:modified_time" content="2024-11-05T12:43:00.718Z"><meta property="article:author" content="CDN"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://cdn-sone.github.io/images/MySQL/summary-of-mysql-field-types.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://cdn-sone.github.io/2024/09/26/MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/"},"headline":"Mysql知识点","image":["https://cdn-sone.github.io/images/MySQL/summary-of-mysql-field-types.png","https://cdn-sone.github.io/images/MySQL/page-struct.png","https://cdn-sone.github.io/images/MySQL/page-record.png","https://cdn-sone.github.io/images/MySQL/record.png","https://cdn-sone.github.io/images/MySQL/page-directory.png","https://cdn-sone.github.io/images/MySQL/page-full.png","https://cdn-sone.github.io/images/MySQL/index-primarykey.png","https://cdn-sone.github.io/images/MySQL/index-next.png","https://cdn-sone.github.io/images/MySQL/index-union.png","https://cdn-sone.github.io/images/MySQL/redolog-simple.png","https://cdn-sone.github.io/images/MySQL/redolog-complex.png","https://cdn-sone.github.io/images/MySQL/undo-insert.png","https://cdn-sone.github.io/images/MySQL/undo-update.png","https://cdn-sone.github.io/images/MySQL/transcation-state.png","https://cdn-sone.github.io/images/MySQL/mvcc-train.png","https://cdn-sone.github.io/images/MySQL/lock.png"],"datePublished":"2024-09-26T11:53:15.000Z","dateModified":"2024-11-05T12:43:00.718Z","author":{"@type":"Person","name":"CDN"},"publisher":{"@type":"Organization","name":"重生之异世界读论文","logo":{"@type":"ImageObject","url":"https://cdn-sone.github.io/img/logo.png"}},"description":"这一章将会讲解mysql相关的知识点。"}</script><link rel="canonical" href="https://cdn-sone.github.io/2024/09/26/MySQL%E7%9F%A5%E8%AF%86%E7%82%B9/"><link rel="icon" href="../../../../img/logo.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="../../../../css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
   (function () {
       function switchTab() {
           if (!location.hash) {
@@ -29,7 +29,7 @@
       switchTab();
       window.addEventListener('hashchange', switchTab, false);
   })();
-  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="../../../../index.html"><img src="../../../../img/logo.png" alt="重生之异世界读论文" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="../../../../index.html">Home</a><a class="navbar-item" href="../../../../archives">Archives</a><a class="navbar-item" href="../../../../categories">Categories</a><a class="navbar-item" href="../../../../tags">Tags</a><a class="navbar-item" href="../../../../about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2024-09-26T11:53:15.000Z" title="2024/9/26 19:53:15">2024-09-26</time>发表</span><span class="level-item"><time dateTime="2024-10-07T08:50:35.888Z" title="2024/10/7 16:50:35">2024-10-07</time>更新</span><span class="level-item">2 分钟读完 (大约289个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Mysql知识点</h1><div class="content"><p>这一章将会讲解mysql相关的知识点。</p>
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="../../../../index.html"><img src="../../../../img/logo.png" alt="重生之异世界读论文" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="../../../../index.html">Home</a><a class="navbar-item" href="../../../../archives">Archives</a><a class="navbar-item" href="../../../../categories">Categories</a><a class="navbar-item" href="../../../../tags">Tags</a><a class="navbar-item" href="../../../../about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-9-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2024-09-26T11:53:15.000Z" title="2024/9/26 19:53:15">2024-09-26</time>发表</span><span class="level-item"><time dateTime="2024-11-05T12:43:00.718Z" title="2024/11/5 20:43:00">2024-11-05</time>更新</span><span class="level-item">30 分钟读完 (大约4572个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Mysql知识点</h1><div class="content"><p>这一章将会讲解mysql相关的知识点。</p>
 <span id="more"></span>
 <h2 id="基础知识"><a class="markdownIt-Anchor" href="#基础知识"></a> 基础知识</h2>
 <h3 id="四种基本语句"><a class="markdownIt-Anchor" href="#四种基本语句"></a> 四种基本语句</h3>
@@ -38,8 +38,320 @@
 <p><strong>DCL（Data Control Language）语句</strong>：即数据控制语句，用于授权/撤销数据库及其字段的权限。常用的语句关键字有：GRANT、REVOKE。</p>
 <p><strong>TCL（Transaction Control Language）语句</strong>：事务控制语句，用于控制事务，常用的语句关键字有：COMMIT、ROLLBACK、SAVEPOINT、SET TRANSACTION。</p>
 <h3 id="数据结构"><a class="markdownIt-Anchor" href="#数据结构"></a> 数据结构</h3>
-<p><img src="https://oss.javaguide.cn/github/javaguide/mysql/summary-of-mysql-field-types.png" alt="数据结构" /></p>
-</div><div class="article-licensing box"><div class="licensing-title"><p>Mysql知识点</p><p><a href="https://cdn-sone.github.io/2024/09/26/MySQL知识点/">https://cdn-sone.github.io/2024/09/26/MySQL知识点/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>CDN</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-09-26</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-10-07</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="a2a_kit a2a_kit_size_32 a2a_default_style"><a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a><a class="a2a_button_facebook"></a><a class="a2a_button_twitter"></a><a class="a2a_button_telegram"></a><a class="a2a_button_whatsapp"></a><a class="a2a_button_reddit"></a></div><script src="https://static.addtoany.com/menu/page.js" defer></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="../../../../img/alipay.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="../../../../img/wechat.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="../Kafka%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E5%8E%9F%E7%90%86/"><span class="level-item">Kafka应用及其原理</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">评论</h3><div class="content" id="valine-thread"></div><script src="//cdn.jsdelivr.net/npm/leancloud-storage@3/dist/av-min.js"></script><script src="https://cdn.jsdelivr.net/npm/valine@1.4.16/dist/Valine.min.js"></script><script>new Valine({
+<p><img src="/images/MySQL/summary-of-mysql-field-types.png" alt="" /></p>
+<h3 id="范式"><a class="markdownIt-Anchor" href="#范式"></a> 范式</h3>
+<ul>
+<li>第一范式：<strong>保证每列的原子性</strong></li>
+<li>第二范式：<strong>消除非主键对主键的部分依赖</strong><br />
+在满足第一范式基础上（<strong>原子性</strong>），要求 非主键 都和 主键 <strong>完整</strong>相关， 而不能是依赖于主键的一部分 （主要针对联合主键而言）。</li>
+<li>第三范式： <strong>消除非主键对主键的传递依赖</strong>（保证每列都和主键直接相关）<br />
+在第二范式的基础上，令非主键列只依赖于主键，不依赖于其他非主键。 就是说表中的非主键字段和主键字段<strong>直接</strong>相关，不允许间接相关。</li>
+<li>修正第三范式：bc范式<br />
+<strong>消除主键对非主键的部分依赖和传递依赖</strong>：前面都是非主属性对主属性之间的关系，主属性可能与非主属性也有关系，当3NF消除了主属性对码的部分函数依赖和传递函数依赖称为BCNF。</li>
+<li>第四范式<br />
+非主属性不应该有多值，4NF是限制关系模式的属性间不允许有非平凡且非函数依赖的多值依赖。举例：用户联系方式表(用户id，固定电话，移动电话)，其中用户id是主键，这个满足了BCNF,但是一个用户有可能会有多个固定电话或者多个移动电话，那么这种设计就不合理，应该改为(用户id，联系方式类型，电话号码)。</li>
+<li>第五范式<br />
+消除了4NF中的连接依赖。</li>
+</ul>
+<h3 id="数据类型"><a class="markdownIt-Anchor" href="#数据类型"></a> 数据类型</h3>
+<p>数值类型：</p>
+<ul>
+<li>TINYINT、SMALLINT、MEDIUMINT、INT、BIGINT</li>
+<li>浮点数类型FLOAT和DOUBLE</li>
+<li>定点数类型DECIMAL<br />
+时间类型（常问区别）：<br />
+| 类型 | 大小  <br>( bytes) | 范围 | 格式 | 用途 |<br />
+| — | ----------------- | ---- | — | ---- |<br />
+| DATE |     3      | 1000-01-01/9999-12-31 | YYYY-MM-DD | 日期值 |<br />
+| TIME      | 3 | ‘-838:59:59’/‘838:59:59’   | HH:MM:SS | 时间值或持续时间 |<br />
+| YEAR      | 1 | 1901/2155 | YYYY | 年份值 |<br />
+| DATETIME  | 8 | ‘1000-01-01 00:00:00’ 到 ‘9999-12-31 23:59:59’ | YYYY-MM-DD hh:mm:ss | 混合日期和时间值 |<br />
+| TIMESTAMP | 4 | ‘1970-01-01 00:00:01’ UTC 到 ‘2038-01-19 03:14:07’ UTC| YYYY-MM-DD hh:mm:ss | 混合日期和时间值，时间戳 |</li>
+</ul>
+<p>TIMESTAMP 一般和时区有关，DATETIME与时区无关，推荐使用DATETIME</p>
+<p>字符串类型：包括CHAR、VARCHAR、BLOB和TEXT</p>
+<h3 id="page"><a class="markdownIt-Anchor" href="#page"></a> Page</h3>
+<p>为了避免一条一条读取磁盘数据，InnoDB采取页的方式，作为磁盘和内存之间交互的基本单位。一个页的大小一般是<code>16KB</code>。</p>
+<p>InnoDB为了不同的目的而设计了多种不同类型的页。比如：存放表空间头部信息的页、存放undo日志信息的页等等。我们把存放表中数据记录的页，称为<code>索引页</code>or<code>数据页</code>。</p>
+<img src="/images/MySQL/page-struct.png" width=512 height=512 />
+<p>往数据页中存储数据（ 也叫 “记录”）,数据插入操作如下：<br />
+<img src="/images/MySQL/page-record.png" /></p>
+<p>记录结构如下：<br />
+<img src="/images/MySQL/record.png" /></p>
+<p>注意，如果数据格式运行出现null值，则会有一个null值列表值段，占用额外的存储空间。<br />
+记录在页中是按照主键值从小到大的顺序串联成为一个<strong>单向链表</strong>，因此查询也只能以头节点开始逐一向后查询。为了加快查询效率，因此出现了目录查询，即Page Directory。<br />
+<img src="/images/MySQL/page-directory.png" /><br />
+页目录插满后数据结构如下：<br />
+<img src="/images/MySQL/page-full.png" width=256 height=256 /></p>
+<h3 id="b树"><a class="markdownIt-Anchor" href="#b树"></a> B+树：</h3>
+<p>可以参考博文<a target="_blank" rel="noopener" href="https://www.cnblogs.com/nullzx/p/8729425.html">B+树与B树的区别</a></p>
+<p>为什么用B+数不用红黑树：</p>
+<ol>
+<li>更少的查找次数<br />
+平衡树查找操作的时间复杂度等于树高 h，而树高大致为 O(h)=O(logdN)，其中 d 为每个节点的出度。红黑树的出度为 2，而 B+ Tree 的出度一般都非常大，所以红黑树的树高 h 很明显比 B+ Tree 大非常多，检索的次数也就更多。</li>
+<li>利用计算机预读特性<br />
+为了减少磁盘 I/O，磁盘往往不是严格按需读取，而是每次都会预读。预读过程中，磁盘进行顺序读取，顺序读取不需要进行磁盘寻道，并且只需要很短的旋转时间，因此速度会非常快。<br />
+操作系统一般将内存和磁盘分割成固态大小的块，每一块称为一页，内存与磁盘以页为单位交换数据。<mark>数据库系统将索引的一个节点的大小设置为页的大小</mark>，使得一次 I/O 就能完全载入一个节点，并且可以利用预读特性，相邻的节点也能够被预先载入。使得数据库预读取更快<br />
+单个页之间是单向索引，不同页之间是双向索引。如果没有索引，就需要全表扫描</li>
+</ol>
+<h2 id="索引"><a class="markdownIt-Anchor" href="#索引"></a> 索引</h2>
+<h3 id="分类"><a class="markdownIt-Anchor" href="#分类"></a> 分类</h3>
+<p>主键索引：叶子节点里存储完整的数据（数据页），非叶子节点存储主键索引。<br />
+<img src="/images/MySQL/index-primarykey.png" width=512 height=512 /></p>
+<p>二级索引：叶子节点储存的数据只有主键，像唯一索引，普通索引，前缀索引等索引都属于二级索引。<br />
+<img src="/images/MySQL/index-next.png" width=512 height=512 /></p>
+<p>聚簇索引：索引和数据结构放在一起，像主键索引就是聚簇索引。</p>
+<p>覆盖索引：一个索引包含（或者说覆盖）所有需要查询的字段的值，而无需回表查询，像如果在普通索引里构造了联合索引，通过而查询的字段正好是联合索引的值，则 无需回表查询，为覆盖缩影。</p>
+<p>联合索引：多列值组成一个索引，专门用于组合搜索，其效率大于索引合并，如果查询的值不仅包含这些组合列，则还是要回表查询的。索引过程中满足最左前缀原则：指的是在使用联合索引时，MySQL 会根据索引中的字段顺序，从左到右依次匹配查询条件中的字段。<br />
+<img src="/images/MySQL/index-union.png" width=512 height=512 /></p>
+<h2 id="日志"><a class="markdownIt-Anchor" href="#日志"></a> 日志</h2>
+<h3 id="redo日志"><a class="markdownIt-Anchor" href="#redo日志"></a> redo日志</h3>
+<p>引言：假设在<strong>事务提交</strong>后突然发生了某个<strong>故障</strong>，导致内存中的<strong>数据都失效</strong>了，那么这个已经提交的事务在数据库中所做的更改也就丢失了。</p>
+<ol>
+<li>方案1：在事务提交时，把该事务修改的所有页面都刷新到磁盘，刷新成功了才提示事务提交成功。<br />
+存在问题：</li>
+</ol>
+<ul>
+<li>刷新一个完整的数据页太浪费了虽然我们只修改了一条记录，但是会将这条记录所在的页（16KB）都刷新到磁盘上，会造成大量磁盘I/O的浪费。</li>
+<li>随机I/O刷新起来比较慢。</li>
+</ul>
+<ol start="2">
+<li>方案2：在事务提交时，只需要把修改的内容记录一下就好了。（redo log）</li>
+</ol>
+<p>redolog本质就是一种简单类型的日志，记录的是在某个页面的某个偏移量处修改了几个字节的值、具体修改后的内容</p>
+<h4 id="分类-2"><a class="markdownIt-Anchor" href="#分类-2"></a> 分类</h4>
+<p>简单日志类型：如果只是修改，仅需要简单日志类型<br />
+<img src="/images/MySQL/redolog-simple.png" /><br />
+复杂日志类型：<br />
+<img src="/images/MySQL/redolog-complex.png" /><br />
+如图可见，一条sql语句肯能对应几条redolog，若执行事务。若执行事务，为了保证事务的原子性，必须将redolog分组。<br />
+InnoDB认为，必须以组的形式来记录redo日志。在进行恢复时，针对某个组中的redo日志，要么把全部的日志都恢复，要么一条也不恢复。</p>
+<h3 id="undo日志"><a class="markdownIt-Anchor" href="#undo日志"></a> undo日志</h3>
+<p>引言：事务是需要保证原子性的，也就是说，事务中的操作要么全部完成，要么什么也不做。当事务执行出错时，我们需要把数据还原回原来的样子，这个过程就叫做<strong>回滚</strong>（rollback）。</p>
+<h4 id="分类-3"><a class="markdownIt-Anchor" href="#分类-3"></a> 分类</h4>
+<p>insert操作：<br />
+<img src="/images/MySQL/undo-insert.png" /></p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>end of record</td>
+<td>undoLog结束，下一条开始时在页面中的地址</td>
+</tr>
+<tr>
+<td>undo type</td>
+<td>undoLog的类型，也就是TRX_UNDO_INSERT_REC</td>
+</tr>
+<tr>
+<td>undo no</td>
+<td>undoLog对应的编号，在一个事务中是从0开始递增的，只要事务没提交，每生成一条undo日志，那么该条日志的undo no就加1</td>
+</tr>
+<tr>
+<td>table id</td>
+<td>undoLog对应的记录所在表的table_id</td>
+</tr>
+<tr>
+<td>start of record</td>
+<td>上一条undoLog结束，本条开始时在页面中的地址</td>
+</tr>
+</tbody>
+</table>
+<p>delete操作：<br />
+被删除的记录其实也会根据记录头信息中的<strong>next_record</strong>属性组成一个链表，只不过这个链表中的记录所占用的存储空间可以被重新利用，所以也称这个链表为<strong>垃圾链表</strong>。Page Header部分中有一个名为<strong>PAGE_FREE</strong>的属性，它指向由被删除记录组成的垃圾链表中的<strong>头节点</strong>。每删除一条记录，则该记录都会插入到垃圾链表的头节点处。（也就是说每个页都记录了当前页被删除的记录，若被重新利用则无法还原）。</p>
+<p>update操作：<br />
+<img src="/images/MySQL/undo-update.png" /><br />
+日志结构：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>n_updated</td>
+<td>表示本条UPDATE语句执行后将有几个列被更新。</td>
+</tr>
+<tr>
+<td>被更新的列更新前信息&lt;pos, old_len, old_value&gt;列表</td>
+<td>被更新列在记录中的位置、更新前该列占用的存储空间大小、更新前该列的真实值。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="事务"><a class="markdownIt-Anchor" href="#事务"></a> 事务</h2>
+<h3 id="四个特性"><a class="markdownIt-Anchor" href="#四个特性"></a> 四个特性</h3>
+<ul>
+<li><strong>原子性（Atomicity）</strong></li>
+<li><strong>一致性（Consistency）</strong></li>
+<li><strong>隔离性（Isolation）</strong></li>
+<li><strong>持久性（Durability）</strong></li>
+</ul>
+<h3 id="事务id生成策略"><a class="markdownIt-Anchor" href="#事务id生成策略"></a> 事务id生成策略</h3>
+<p>生成策略如下：</p>
+<ol>
+<li>内存中维护一个<strong>全局变量</strong>，每当需要为某个事务分配事务id时，就会把该变量值当作事务id分配给该事务，并且自增1。</li>
+<li>每当这个变量的值为<strong>256的倍数</strong>时，就会将值刷新到<strong>系统表空间中页号为5</strong>的页面中一个名为<strong>Max Trx ID</strong>的属性中（占用8个字节）。</li>
+<li>当系统下一次启动时，会将Max Trx ID的值加载到到内存中，并加上256之后赋值给前面提到的全局变量（因为上次关机时，该全局变量的值可能大于磁盘页面中的<strong>Max Trx ID</strong>属性值）。</li>
+</ol>
+<h3 id="事物的状态"><a class="markdownIt-Anchor" href="#事物的状态"></a> 事物的状态</h3>
+<img src="/images/MySQL/transcation-state.png" />
+<h3 id="三个事务并发一致性问题"><a class="markdownIt-Anchor" href="#三个事务并发一致性问题"></a> 三个事务并发一致性问题</h3>
+<ol>
+<li>脏读：一个事务读取到了另一个未提交事务修改过的数据</li>
+<li>不可重复读：一个事务修改了另一个未提交事务读取的数据就意味着发生了不可重复读现象，或者叫模糊读FuzzyRead</li>
+<li>幻读：如果一个事务先根据某些搜索条件（select … where vip=‘是’）查询了一些记录，但是在该事务并未提交时，另一个事务写入了一些符合上面搜索条件的记录。导致下一次用该查询语句发生出错，说明发生了幻读现象。</li>
+</ol>
+<h3 id="四个隔离级别"><a class="markdownIt-Anchor" href="#四个隔离级别"></a> 四个隔离级别</h3>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>脏读</th>
+<th>不可重复读</th>
+<th>幻读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>读未提交</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>读已提交</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>可重复读</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>串行化</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mvcc"><a class="markdownIt-Anchor" href="#mvcc"></a> MVCC</h2>
+<ul>
+<li>MVCC (Multi-Version Concurrency Control)多版本并发控制，利用记录的<strong>版本链</strong>和<strong>ReadView</strong>，来<strong>控制并发事务访问相同记录时的行为</strong>。</li>
+<li>ReadView 一致性视图，用来判断版本链中的<strong>哪个版本是当前事务可见的</strong>。</li>
+</ul>
+<h3 id="版本链"><a class="markdownIt-Anchor" href="#版本链"></a> 版本链</h3>
+<p>在每次更新该记录后，都会将旧值放到一条undo日志中。随着更新次数的增多，所有的版本都会被<strong>roll_pointer</strong>属性连接成一条链表，这个链表就称之为<em>版本链</em>。<br />
+<img src="/images/MySQL/mvcc-train.png" width=512 height=512 /></p>
+<h3 id="readview"><a class="markdownIt-Anchor" href="#readview"></a> ReadView</h3>
+<p>ReadView也叫一致性视图，用来<strong>判断版本链中的哪个版本是当前事务可见的</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m_ids</td>
+<td>在生成ReadView时，当前系统中活跃的读写事务的事务id列表。</td>
+</tr>
+<tr>
+<td>min_trx_id</td>
+<td>在生成ReadView时，当前系统中活跃的读写事务中最小的事务id，也就是<strong>m_ids中的最小值</strong>。</td>
+</tr>
+<tr>
+<td>max_trx_id</td>
+<td>在生成ReadView时，系统应该分配给下一个事务的事务id值。</td>
+</tr>
+<tr>
+<td>creator_trx_id</td>
+<td>生成该ReadView的事务的事务id。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="判断事物是否可见"><a class="markdownIt-Anchor" href="#判断事物是否可见"></a> 判断事物是否可见</h3>
+<ul>
+<li>
+<p>if(RC.trx_id == RV.creator_trx_id)<br />
+则表明当前事务在访问它自己修改过的记录，所以该版本可以被当前事务访问。</p>
+</li>
+<li>
+<p>if(RC.trx_id &lt; RV.min_trx_id)<br />
+则表明生成该版本的事务在当前事务生成ReadView之前已经提交了，所以该版本可以被当前事务访问。</p>
+</li>
+<li>
+<p>if(RC.trx_id &gt;= RV.max_trx_id)<br />
+则表明生成该版本的事务在当前事务生成ReadView之后才开启，所以该版本不可以被当前事务访问。</p>
+</li>
+<li>
+<p>if(RC.trx_id in RV.m_ids)<br />
+说明创建ReadView时生成该版本的事务还是活跃的，该版本不可以被访问。</p>
+</li>
+<li>
+<p>if(RC.trx_id not in RV.m_ids)<br />
+说明创建ReadView时生成该版本的事务已经被提交，该版本可以被访问（m_ids为空集合）。</p>
+</li>
+<li>
+<p>if(某个版本的数据对当前事务不可见)<br />
+那就顺着版本链找到下一个版本的数据，并继续执行上面的步骤来判断记录的可见性，以此类推，直到版本链中的最后一个版本。</p>
+</li>
+</ul>
+<p>总结一下：先看是否是同一个事物，再与min，max比较判断是否可显示。此时剩下的在min，max中间，最后看m_ids看是否可显示。</p>
+<h3 id="mvcc生成时机"><a class="markdownIt-Anchor" href="#mvcc生成时机"></a> MVCC生成时机</h3>
+<ul>
+<li>READ COMMITTED——在一个事务中，每次读取数据前都生成一个ReadView。</li>
+<li>REPEATABLE READ——在一个事务中，只在第一次读取数据时生成一个ReadView。</li>
+</ul>
+<h2 id="锁"><a class="markdownIt-Anchor" href="#锁"></a> 锁</h2>
+<p>引言：由于任何一种隔离级别都不允许<strong>脏写</strong>（写-写）的现象发生，所以，当多个未提交事务相继对一条记录进行改动的时候，就需要让它们<strong>排队执行</strong>。</p>
+<p>概念：这个排队的过程其实是通过为该记录加锁来实现的。这个锁本质上是一个<strong>内存中的结构</strong>。<br />
+<img src="/images/MySQL/lock.png" width=512 height=512 /></p>
+<p>有两种方式实现</p>
+<ol>
+<li>读-MVCC，写-锁（效率高）</li>
+<li>读写-锁（在特定的场景，银行业务，需要读取最新数据和数据准确性，对执行时间并无苛刻要求，需要都加锁）</li>
+</ol>
+<h3 id="行级锁"><a class="markdownIt-Anchor" href="#行级锁"></a> 行级锁</h3>
+<ul>
+<li>共享锁 / S锁（Shared Lock）<br />
+在事务要读取一条记录时，需要先获取该记录的S锁。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> ... lock <span class="keyword">in</span> share mode;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>独占锁 / 排它锁 / X锁（Exclusive Lock）<br />
+在事务要修改一条记录时，需要先获取该记录的X锁。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> ... <span class="keyword">for</span> <span class="keyword">update</span>;</span><br></pre></td></tr></table></figure>
+<p>仅共享锁之间兼容。</p>
+<h3 id="表级锁"><a class="markdownIt-Anchor" href="#表级锁"></a> 表级锁</h3>
+<ul>
+<li>表级共享锁（<em>S锁</em>）其他事务可以继续获得该<strong>表</strong>/该表中的某些<strong>记录</strong>的<em>S</em>锁。其他事务不可以继续获得该<strong>表</strong>/该表中的某些<strong>记录</strong>的<em>X</em>锁。</li>
+<li>表级独占锁（<em>X锁</em>）其他事务不可以继续获得该<strong>表</strong>/该表中的某些<strong>记录</strong>的<em>X</em>锁或<em>S</em>锁。</li>
+<li>意向共享锁（<em>IS锁</em>）当事务准备在某条<strong>记录</strong>上加S锁时，首先需要在<strong>表</strong>级别加一个<em>IS</em>锁。</li>
+<li>意向独占锁（<em>IX锁</em>）当事务准备在某条<strong>记录</strong>上加X锁时，首先需要在<strong>表</strong>级别加一个<em>IX</em>锁。</li>
+</ul>
+<p>S锁和IX锁是<strong>表级锁</strong>，它们的提出仅仅为了在之后加表级别的S锁和X锁时<strong>可以快速判断表中的记录是否被上锁</strong>，以避免用遍历的方式来查看表中有没有上锁的记录；也就是说，<strong>IS锁和IX锁之间或者与自身都是彼此兼容的</strong></p>
+<h3 id="innodb表级锁"><a class="markdownIt-Anchor" href="#innodb表级锁"></a> InnoDB表级锁</h3>
+<ul>
+<li>LOCK_REC_NOT_GAP<br />
+被称为记录锁，也就是仅仅负责把1条记录锁上的锁。</li>
+<li>LOCK_GAP<br />
+被称为gap锁，锁住了指定记录前面的间隙，防止其间插入新记录。gap锁的提出仅仅是为了防止插入幻象记录（即：幻读现象）而提出的。</li>
+<li>LOCK_ORDINARY<br />
+被称为next-key锁，本质就是一个 记录锁 + gap锁 的合体。它既能保护该条记录，又能阻止别的事务将新纪录插入到被保护记录前面的间隙中。</li>
+</ul>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Mysql知识点</p><p><a href="https://cdn-sone.github.io/2024/09/26/MySQL知识点/">https://cdn-sone.github.io/2024/09/26/MySQL知识点/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>CDN</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-09-26</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-11-05</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="a2a_kit a2a_kit_size_32 a2a_default_style"><a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a><a class="a2a_button_facebook"></a><a class="a2a_button_twitter"></a><a class="a2a_button_telegram"></a><a class="a2a_button_whatsapp"></a><a class="a2a_button_reddit"></a></div><script src="https://static.addtoany.com/menu/page.js" defer></script></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>支付宝</span><span class="qrcode"><img src="../../../../img/alipay.png" alt="支付宝"></span></a><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>微信</span><span class="qrcode"><img src="../../../../img/wechat.png" alt="微信"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="../Kafka%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E5%8E%9F%E7%90%86/"><span class="level-item">Kafka应用及其原理</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">评论</h3><div class="content" id="valine-thread"></div><script src="//cdn.jsdelivr.net/npm/leancloud-storage@3/dist/av-min.js"></script><script src="https://cdn.jsdelivr.net/npm/valine@1.4.16/dist/Valine.min.js"></script><script>new Valine({
             el: '#valine-thread',
             appId: "dhLX9c4sZ5PYVbbSjxpX6XXh-MdYXbMMI",
             appKey: "iV8cPlsr25mxoVBH3dYgsAmV",
@@ -57,7 +369,7 @@
             
             enableQQ: false,
             requiredFields: [],
-        });</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#基础知识"><span class="level-left"><span class="level-item">1</span><span class="level-item"> 基础知识</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#四种基本语句"><span class="level-left"><span class="level-item">1.1</span><span class="level-item"> 四种基本语句</span></span></a></li><li><a class="level is-mobile" href="#数据结构"><span class="level-left"><span class="level-item">1.2</span><span class="level-item"> 数据结构</span></span></a></li></ul></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="../../../../js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="../../../../img/avatar.png" alt="CDN"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">CDN</p><p class="is-size-6 is-block">研究生</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="../../../../archives"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="../../../../categories"><p class="title">4</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="../../../../tags"><p class="title">7</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/CDN-Sone" target="_blank" rel="me noopener">关注我</a></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../categories/java/"><span class="level-start"><span class="level-item">java</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%9F%BA%E4%BA%8E%E6%A0%BC%E7%9A%84%E5%B1%9E%E6%80%A7%E5%9F%BA%E5%8A%A0%E5%AF%86/"><span class="level-start"><span class="level-item">基于格的属性基加密</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%B7%A5%E4%BD%9C/"><span class="level-start"><span class="level-item">工作</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/"><span class="level-start"><span class="level-item">网络安全</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-26T11:53:15.000Z">2024-09-26</time></p><p class="title"><a href="">Mysql知识点</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-26T03:20:01.000Z">2024-09-26</time></p><p class="title"><a href="../Kafka%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E5%8E%9F%E7%90%86/">Kafka应用及其原理</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-23T09:22:17.000Z">2024-09-23</time></p><p class="title"><a href="../../23/Redis%E6%A6%82%E8%BF%B0/">Redis概述</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-29T13:52:10.000Z">2024-06-29</time></p><p class="title"><a href="../../../06/29/git%E6%8C%87%E5%8D%97/">git指南</a></p><p class="categories"><a href="../../../../categories/%E5%B7%A5%E4%BD%9C/">工作</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-16T04:01:15.000Z">2024-06-16</time></p><p class="title"><a href="../../../06/16/AQS%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">AQS源码解析(二)</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../archives/2024/09/"><span class="level-start"><span class="level-item">九月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="../../../../archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="../../../../archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="../../../../tags/ABE/"><span class="tag">ABE</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/Lattice/"><span class="tag">Lattice</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/hexo/"><span class="tag">hexo</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%AE%89%E5%85%A8/"><span class="tag">安全</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B7%A5%E5%85%B7/"><span class="tag">工具</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"><span class="tag">并发编程</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"><span class="tag">源码解析</span><span class="tag">1</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="../../../../index.html"><img src="../../../../img/logo.png" alt="重生之异世界读论文" height="28"></a><p class="is-size-7"><span>&copy; 2024 CDN</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2019</p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+        });</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#基础知识"><span class="level-left"><span class="level-item">1</span><span class="level-item"> 基础知识</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#四种基本语句"><span class="level-left"><span class="level-item">1.1</span><span class="level-item"> 四种基本语句</span></span></a></li><li><a class="level is-mobile" href="#数据结构"><span class="level-left"><span class="level-item">1.2</span><span class="level-item"> 数据结构</span></span></a></li><li><a class="level is-mobile" href="#范式"><span class="level-left"><span class="level-item">1.3</span><span class="level-item"> 范式</span></span></a></li><li><a class="level is-mobile" href="#数据类型"><span class="level-left"><span class="level-item">1.4</span><span class="level-item"> 数据类型</span></span></a></li><li><a class="level is-mobile" href="#page"><span class="level-left"><span class="level-item">1.5</span><span class="level-item"> Page</span></span></a></li><li><a class="level is-mobile" href="#b树"><span class="level-left"><span class="level-item">1.6</span><span class="level-item"> B+树：</span></span></a></li></ul></li><li><a class="level is-mobile" href="#索引"><span class="level-left"><span class="level-item">2</span><span class="level-item"> 索引</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#分类"><span class="level-left"><span class="level-item">2.1</span><span class="level-item"> 分类</span></span></a></li></ul></li><li><a class="level is-mobile" href="#日志"><span class="level-left"><span class="level-item">3</span><span class="level-item"> 日志</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#redo日志"><span class="level-left"><span class="level-item">3.1</span><span class="level-item"> redo日志</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#分类-2"><span class="level-left"><span class="level-item">3.1.1</span><span class="level-item"> 分类</span></span></a></li></ul></li><li><a class="level is-mobile" href="#undo日志"><span class="level-left"><span class="level-item">3.2</span><span class="level-item"> undo日志</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#分类-3"><span class="level-left"><span class="level-item">3.2.1</span><span class="level-item"> 分类</span></span></a></li></ul></li></ul></li><li><a class="level is-mobile" href="#事务"><span class="level-left"><span class="level-item">4</span><span class="level-item"> 事务</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#四个特性"><span class="level-left"><span class="level-item">4.1</span><span class="level-item"> 四个特性</span></span></a></li><li><a class="level is-mobile" href="#事务id生成策略"><span class="level-left"><span class="level-item">4.2</span><span class="level-item"> 事务id生成策略</span></span></a></li><li><a class="level is-mobile" href="#事物的状态"><span class="level-left"><span class="level-item">4.3</span><span class="level-item"> 事物的状态</span></span></a></li><li><a class="level is-mobile" href="#三个事务并发一致性问题"><span class="level-left"><span class="level-item">4.4</span><span class="level-item"> 三个事务并发一致性问题</span></span></a></li><li><a class="level is-mobile" href="#四个隔离级别"><span class="level-left"><span class="level-item">4.5</span><span class="level-item"> 四个隔离级别</span></span></a></li></ul></li><li><a class="level is-mobile" href="#mvcc"><span class="level-left"><span class="level-item">5</span><span class="level-item"> MVCC</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#版本链"><span class="level-left"><span class="level-item">5.1</span><span class="level-item"> 版本链</span></span></a></li><li><a class="level is-mobile" href="#readview"><span class="level-left"><span class="level-item">5.2</span><span class="level-item"> ReadView</span></span></a></li><li><a class="level is-mobile" href="#判断事物是否可见"><span class="level-left"><span class="level-item">5.3</span><span class="level-item"> 判断事物是否可见</span></span></a></li><li><a class="level is-mobile" href="#mvcc生成时机"><span class="level-left"><span class="level-item">5.4</span><span class="level-item"> MVCC生成时机</span></span></a></li></ul></li><li><a class="level is-mobile" href="#锁"><span class="level-left"><span class="level-item">6</span><span class="level-item"> 锁</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#行级锁"><span class="level-left"><span class="level-item">6.1</span><span class="level-item"> 行级锁</span></span></a></li><li><a class="level is-mobile" href="#表级锁"><span class="level-left"><span class="level-item">6.2</span><span class="level-item"> 表级锁</span></span></a></li><li><a class="level is-mobile" href="#innodb表级锁"><span class="level-left"><span class="level-item">6.3</span><span class="level-item"> InnoDB表级锁</span></span></a></li></ul></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="../../../../js/toc.js" defer></script></div><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="../../../../img/avatar.png" alt="CDN"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">CDN</p><p class="is-size-6 is-block">研究生</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="../../../../archives"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="../../../../categories"><p class="title">4</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="../../../../tags"><p class="title">7</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/CDN-Sone" target="_blank" rel="me noopener">关注我</a></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../categories/java/"><span class="level-start"><span class="level-item">java</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%9F%BA%E4%BA%8E%E6%A0%BC%E7%9A%84%E5%B1%9E%E6%80%A7%E5%9F%BA%E5%8A%A0%E5%AF%86/"><span class="level-start"><span class="level-item">基于格的属性基加密</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E5%B7%A5%E4%BD%9C/"><span class="level-start"><span class="level-item">工作</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="../../../../categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/"><span class="level-start"><span class="level-item">网络安全</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-26T11:53:15.000Z">2024-09-26</time></p><p class="title"><a href="">Mysql知识点</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-26T03:20:01.000Z">2024-09-26</time></p><p class="title"><a href="../Kafka%E5%BA%94%E7%94%A8%E5%8F%8A%E5%85%B6%E5%8E%9F%E7%90%86/">Kafka应用及其原理</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-23T09:22:17.000Z">2024-09-23</time></p><p class="title"><a href="../../23/Redis%E6%A6%82%E8%BF%B0/">Redis概述</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-29T13:52:10.000Z">2024-06-29</time></p><p class="title"><a href="../../../06/29/git%E6%8C%87%E5%8D%97/">git指南</a></p><p class="categories"><a href="../../../../categories/%E5%B7%A5%E4%BD%9C/">工作</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-16T04:01:15.000Z">2024-06-16</time></p><p class="title"><a href="../../../06/16/AQS%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">AQS源码解析(二)</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="../../../../archives/2024/09/"><span class="level-start"><span class="level-item">九月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="../../../../archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="../../../../archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="../../../../tags/ABE/"><span class="tag">ABE</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/Lattice/"><span class="tag">Lattice</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/hexo/"><span class="tag">hexo</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%AE%89%E5%85%A8/"><span class="tag">安全</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B7%A5%E5%85%B7/"><span class="tag">工具</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"><span class="tag">并发编程</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="../../../../tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"><span class="tag">源码解析</span><span class="tag">1</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="../../../../index.html"><img src="../../../../img/logo.png" alt="重生之异世界读论文" height="28"></a><p class="is-size-7"><span>&copy; 2024 CDN</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2019</p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
             article: {
                 highlight: {
                     clipboard: true,
